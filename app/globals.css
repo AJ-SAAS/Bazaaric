@@ -1,0 +1,23 @@
+/* Minimal global styles for the app */
+:root {
+  --bg: #f8fafc;
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: var(--bg);
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* basic utilities used by components */
+.max-w-xl { max-width: 36rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }

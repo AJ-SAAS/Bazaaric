@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env.local
+.npm-cache/
+.npm-tmp/
+/.vscode/
+dist/
+coverage/
+npm-debug.log*
+package-lock.jsonnode_modules/
