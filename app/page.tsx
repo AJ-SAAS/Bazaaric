@@ -32,119 +32,129 @@ const items = [
     image:
       "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=500",
   },
-  {
-    title: "Sunglasses",
-    price: "€18",
-    location: "Riga",
-    image:
-      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=500",
-  },
-  {
-    title: "Winter coat",
-    price: "€55",
-    location: "Tallinn",
-    image:
-      "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=500",
-  },
-  {
-    title: "Running shoes",
-    price: "€30",
-    location: "Vilnius",
-    image:
-      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500",
-  },
-  {
-    title: "Headphones",
-    price: "€45",
-    location: "Tallinn",
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500",
-  },
 ];
+
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#faf9f6] pb-24">
+    <main className="min-h-screen bg-[#faf9f6] pb-28">
 
-      <div className="max-w-md mx-auto px-4">
+      <div className="mx-auto max-w-md px-4">
 
-        {/* Header */}
+
+        {/* Top */}
         <header className="pt-6">
 
-          <div className="flex items-center justify-between">
+          <div className="flex justify-between items-start">
 
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">
+              <p className="text-sm text-gray-500">
+                Good afternoon 👋
+              </p>
+
+              <h1 className="mt-1 text-3xl font-bold tracking-tight">
                 Bazaaric
               </h1>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Buy and sell nearby
-              </p>
             </div>
 
 
-            <button
-              className="
-                h-10
-                w-10
-                rounded-full
-                bg-white
-                shadow-sm
-                ring-1
-                ring-black/5
-              "
-            >
+            <button className="
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-full
+              bg-white
+              shadow-sm
+            ">
               ♡
             </button>
 
           </div>
 
 
-          {/* Search */}
-          <div className="mt-6">
+          <h2 className="
+            mt-8
+            text-xl
+            font-semibold
+          ">
+            Find something you love
+          </h2>
+
+
+          <div className="mt-4">
             <SearchBar />
           </div>
 
         </header>
 
 
+
         {/* Categories */}
-        <section className="mt-5">
+        <section className="mt-6">
           <CategoryBar />
         </section>
 
 
-        {/* Featured */}
+
+        {/* Fresh */}
         <section className="mt-8">
 
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex justify-between">
 
             <h2 className="text-lg font-bold">
               Fresh finds
             </h2>
 
             <button className="text-sm text-gray-500">
-              See all
+              View all
             </button>
 
           </div>
 
 
-          <div
-            className="
-              grid
-              grid-cols-2
-              gap-x-3
-              gap-y-6
-            "
-          >
+          <div className="
+            grid
+            grid-cols-2
+            gap-4
+          ">
 
-            {items.map((item) => (
+            {items.map((item)=>(
               <ItemCard
                 key={item.title}
                 {...item}
               />
+            ))}
+
+          </div>
+
+        </section>
+
+
+
+        {/* Location */}
+        <section className="mt-10">
+
+          <h2 className="mb-4 text-lg font-bold">
+            Near Tallinn
+          </h2>
+
+
+          <div className="
+            flex
+            gap-4
+            overflow-x-auto
+            pb-3
+          ">
+
+            {items.slice(0,3).map((item)=>(
+              <div
+                key={item.title}
+                className="min-w-[150px]"
+              >
+                <ItemCard {...item}/>
+              </div>
             ))}
 
           </div>
