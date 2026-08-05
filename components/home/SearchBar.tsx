@@ -1,11 +1,41 @@
 export default function SearchBar() {
   return (
-    <div className="w-full mb-3">
-      <input
-        type="text"
-        placeholder="Search items..."
-        className="w-full rounded-full bg-gray-100 px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-black/10"
-      />
+    <div className="relative">
+
+      <div
+        className="
+          flex
+          items-center
+          gap-3
+          rounded-2xl
+          bg-white
+          px-4
+          py-3.5
+          shadow-sm
+          ring-1
+          ring-black/5
+        "
+      >
+
+        <span className="text-gray-400 text-lg">
+          🔍
+        </span>
+
+        <input
+          type="text"
+          placeholder="Search clothes, electronics, furniture..."
+          className="
+            w-full
+            bg-transparent
+            text-sm
+            text-gray-900
+            placeholder:text-gray-400
+            outline-none
+          "
+        />
+
+      </div>
+
     </div>
   );
 }
