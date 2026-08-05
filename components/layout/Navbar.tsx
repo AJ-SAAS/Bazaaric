@@ -4,38 +4,75 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-50">
-      <div className="max-w-xl mx-auto flex justify-around py-3 text-sm">
+    <nav className="
+      fixed
+      bottom-0
+      left-0
+      right-0
+      z-50
+      border-t
+      bg-white/90
+      backdrop-blur
+    ">
 
-        <Link href="/" className="flex flex-col items-center">
-          🏠
-          <span>Home</span>
+      <div className="
+        mx-auto
+        flex
+        max-w-xl
+        items-center
+        justify-around
+        py-3
+        text-xs
+        text-gray-500
+      ">
+
+        <Link href="/" className="flex flex-col items-center gap-1">
+          <span className="text-xl">⌂</span>
+          Home
         </Link>
 
-        <Link href="/search" className="flex flex-col items-center">
-          🔍
-          <span>Search</span>
+
+        <Link href="/search" className="flex flex-col items-center gap-1">
+          <span className="text-xl">⌕</span>
+          Search
         </Link>
+
 
         <Link
           href="/sell"
-          className="flex flex-col items-center bg-black text-white rounded-full px-5 py-2 -mt-6"
+          className="
+            -mt-8
+            flex
+            h-14
+            w-14
+            flex-col
+            items-center
+            justify-center
+            rounded-full
+            bg-black
+            text-white
+            shadow-lg
+          "
         >
-          ＋
-          <span>Sell</span>
+          <span className="text-2xl leading-none">
+            +
+          </span>
         </Link>
 
-        <Link href="/inbox" className="flex flex-col items-center">
-          💬
-          <span>Inbox</span>
+
+        <Link href="/inbox" className="flex flex-col items-center gap-1">
+          <span className="text-xl">♡</span>
+          Inbox
         </Link>
 
-        <Link href="/profile" className="flex flex-col items-center">
-          👤
-          <span>Profile</span>
+
+        <Link href="/profile" className="flex flex-col items-center gap-1">
+          <span className="text-xl">○</span>
+          Profile
         </Link>
 
       </div>
+
     </nav>
   );
 }
