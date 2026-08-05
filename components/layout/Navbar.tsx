@@ -1,39 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import {
+  Home,
+  Search,
+  Plus,
+  MessageCircle,
+  User,
+} from "lucide-react";
+
 
 export default function Navbar() {
   return (
-    <nav className="
-      fixed
-      bottom-0
-      left-0
-      right-0
-      z-50
-      border-t
-      bg-white/90
-      backdrop-blur
-    ">
+    <nav
+      className="
+        fixed
+        bottom-0
+        left-0
+        right-0
+        z-50
+        border-t
+        border-black/5
+        bg-white/90
+        backdrop-blur
+      "
+    >
 
-      <div className="
-        mx-auto
-        flex
-        max-w-xl
-        items-center
-        justify-around
-        py-3
-        text-xs
-        text-gray-500
-      ">
+      <div
+        className="
+          mx-auto
+          flex
+          max-w-md
+          items-center
+          justify-around
+          px-4
+          py-2
+          text-[11px]
+          text-gray-500
+        "
+      >
 
-        <Link href="/" className="flex flex-col items-center gap-1">
-          <span className="text-xl">⌂</span>
+        <Link
+          href="/"
+          className="
+            flex
+            flex-col
+            items-center
+            gap-1
+          "
+        >
+          <Home size={21}/>
           Home
         </Link>
 
 
-        <Link href="/search" className="flex flex-col items-center gap-1">
-          <span className="text-xl">⌕</span>
+        <Link
+          href="/search"
+          className="
+            flex
+            flex-col
+            items-center
+            gap-1
+          "
+        >
+          <Search size={21}/>
           Search
         </Link>
 
@@ -41,33 +71,46 @@ export default function Navbar() {
         <Link
           href="/sell"
           className="
-            -mt-8
+            -mt-7
             flex
             h-14
             w-14
-            flex-col
             items-center
             justify-center
             rounded-full
-            bg-black
+            bg-[#2F855A]
             text-white
             shadow-lg
           "
         >
-          <span className="text-2xl leading-none">
-            +
-          </span>
+          <Plus size={28}/>
         </Link>
 
 
-        <Link href="/inbox" className="flex flex-col items-center gap-1">
-          <span className="text-xl">♡</span>
+        <Link
+          href="/inbox"
+          className="
+            flex
+            flex-col
+            items-center
+            gap-1
+          "
+        >
+          <MessageCircle size={21}/>
           Inbox
         </Link>
 
 
-        <Link href="/profile" className="flex flex-col items-center gap-1">
-          <span className="text-xl">○</span>
+        <Link
+          href="/profile"
+          className="
+            flex
+            flex-col
+            items-center
+            gap-1
+          "
+        >
+          <User size={21}/>
           Profile
         </Link>
 

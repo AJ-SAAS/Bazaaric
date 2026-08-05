@@ -14,13 +14,15 @@ export default function ItemCard({
   return (
     <article className="group cursor-pointer">
 
-      <div className="
-        relative
-        aspect-[4/5]
-        overflow-hidden
-        rounded-2xl
-        bg-gray-100
-      ">
+      <div
+        className="
+          relative
+          aspect-square
+          overflow-hidden
+          rounded-xl
+          bg-gray-100
+        "
+      >
 
         <img
           src={image}
@@ -35,19 +37,20 @@ export default function ItemCard({
           "
         />
 
+
         <button
           className="
             absolute
-            right-3
-            top-3
+            right-2
+            top-2
             flex
-            h-9
-            w-9
+            h-8
+            w-8
             items-center
             justify-center
             rounded-full
-            bg-white/90
-            text-lg
+            bg-white/95
+            text-gray-700
             shadow-sm
           "
         >
@@ -57,38 +60,39 @@ export default function ItemCard({
       </div>
 
 
-      <div className="mt-3 px-1">
+      <div className="mt-2">
 
-        <div className="flex items-center justify-between">
-
-          <p className="
-            text-lg
-            font-bold
-            tracking-tight
-          ">
-            {price}
-          </p>
-
-        </div>
+        <p
+          className="
+            text-base
+            font-semibold
+            leading-tight
+          "
+        >
+          {price}
+        </p>
 
 
-        <p className="
-          mt-1
-          text-sm
-          font-medium
-          text-gray-900
-          line-clamp-1
-        ">
+        <p
+          className="
+            mt-1
+            text-sm
+            text-gray-800
+            line-clamp-1
+          "
+        >
           {title}
         </p>
 
 
-        <p className="
-          mt-1
-          text-xs
-          text-gray-500
-        ">
-          📍 {location}
+        <p
+          className="
+            mt-1
+            text-xs
+            text-gray-500
+          "
+        >
+          {location}
         </p>
 
       </div>
