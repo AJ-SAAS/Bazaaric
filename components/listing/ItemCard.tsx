@@ -13,7 +13,6 @@ export default function ItemCard({
 }: ItemCardProps) {
   return (
     <article className="group cursor-pointer">
-
       <div
         className="
           relative
@@ -23,7 +22,6 @@ export default function ItemCard({
           bg-gray-100
         "
       >
-
         <img
           src={image}
           alt={title}
@@ -36,7 +34,6 @@ export default function ItemCard({
             group-hover:scale-105
           "
         />
-
 
         <button
           className="
@@ -56,47 +53,21 @@ export default function ItemCard({
         >
           ♡
         </button>
-
       </div>
 
-
       <div className="mt-2">
-
-        <p
-          className="
-            text-base
-            font-semibold
-            leading-tight
-          "
-        >
+        <p className="text-base md:text-lg font-semibold leading-tight">
           {price}
         </p>
 
-
-        <p
-          className="
-            mt-1
-            text-sm
-            text-gray-800
-            line-clamp-1
-          "
-        >
+        <p className="mt-1 text-sm md:text-base text-gray-800 line-clamp-1">
           {title}
         </p>
 
-
-        <p
-          className="
-            mt-1
-            text-xs
-            text-gray-500
-          "
-        >
+        <p className="mt-1 text-xs md:text-sm text-gray-500">
           {location}
         </p>
-
       </div>
-
     </article>
   );
 }
