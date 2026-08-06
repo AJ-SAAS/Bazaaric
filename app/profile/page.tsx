@@ -5,8 +5,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getListingsByUser, Listing } from "@/lib/listings";
-import ItemCard from "@/components/listing/ItemCard";
+import { getListingsByUser, deleteListing, updateListing, Listing } from "@/lib/listings";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 
@@ -18,9 +17,7 @@ export default function ProfilePage() {
   const [listingsLoading, setListingsLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth");
-    }
+    if (!loading && !user) router.push("/auth");
   }, [user, loading, router]);
 
   useEffect(() => {
@@ -29,6 +26,19 @@ export default function ProfilePage() {
       .then(setListings)
       .finally(() => setListingsLoading(false));
   }, [user]);
+
+  async function handleMarkAsSold(id: string) {
+    await updateListing(id, { status: "sold" });
+    setListings((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, status: "sold" } : l))
+    );
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this listing? This can't be undone.")) return;
+    await deleteListing(id);
+    setListings((prev) => prev.filter((l) => l.id !== id));
+  }
 
   if (loading || !user) {
     return (
@@ -40,12 +50,61 @@ export default function ProfilePage() {
 
   const activeListings = listings.filter((l) => l.status === "active");
   const draftListings = listings.filter((l) => l.status === "draft");
+  const soldListings = listings.filter((l) => l.status === "sold");
+
+  function ListingRow({ item }: { item: Listing }) {
+    return (
+      <div className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+        <Link href={`/item/${item.id}`} className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+          <img
+            src={item.imageUrls[0] || "https://via.placeholder.com/200"}
+            alt={item.title}
+            className="h-full w-full object-cover"
+          />
+        </Link>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold truncate">{item.title}</p>
+          <p className="text-xs text-gray-500">€{item.price}</p>
+        </div>
+
+        <div className="flex shrink-0 gap-2">
+          {item.status !== "sold" && (
+            <>
+              <button
+                onClick={() => router.push(`/sell?edit=${item.id}`)}
+                className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Edit
+              </button>
+
+              {item.status === "active" && (
+                <button
+                  onClick={() => handleMarkAsSold(item.id)}
+                  className="rounded-full bg-[#2F855A] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#276749]"
+                >
+                  Mark sold
+                </button>
+              )}
+            </>
+          )}
+
+          <button
+            onClick={() => handleDelete(item.id)}
+            className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
 
-      <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
+      <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         <h1 className="text-2xl md:text-3xl font-bold">Profile</h1>
 
         <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 flex items-center justify-between">
@@ -65,10 +124,7 @@ export default function ProfilePage() {
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg md:text-2xl font-bold">Your listings</h2>
-            <Link
-              href="/sell"
-              className="text-sm font-semibold text-[#2F855A] hover:underline"
-            >
+            <Link href="/sell" className="text-sm font-semibold text-[#2F855A] hover:underline">
               + New listing
             </Link>
           </div>
@@ -76,20 +132,11 @@ export default function ProfilePage() {
           {listingsLoading ? (
             <p className="text-sm text-gray-500">Loading your listings...</p>
           ) : activeListings.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              You haven't listed anything yet.
-            </p>
+            <p className="text-sm text-gray-500">You haven't listed anything yet.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="space-y-3">
               {activeListings.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  price={`€${item.price}`}
-                  location={item.location}
-                  image={item.imageUrls[0] || "https://via.placeholder.com/500"}
-                />
+                <ListingRow key={item.id} item={item} />
               ))}
             </div>
           )}
@@ -98,16 +145,20 @@ export default function ProfilePage() {
         {draftListings.length > 0 && (
           <section className="mt-10">
             <h2 className="mb-4 text-lg md:text-2xl font-bold">Drafts</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 opacity-70">
+            <div className="space-y-3">
               {draftListings.map((item) => (
-                <ItemCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  price={`€${item.price}`}
-                  location={item.location}
-                  image={item.imageUrls[0] || "https://via.placeholder.com/500"}
-                />
+                <ListingRow key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {soldListings.length > 0 && (
+          <section className="mt-10">
+            <h2 className="mb-4 text-lg md:text-2xl font-bold">Sold</h2>
+            <div className="space-y-3 opacity-70">
+              {soldListings.map((item) => (
+                <ListingRow key={item.id} item={item} />
               ))}
             </div>
           </section>

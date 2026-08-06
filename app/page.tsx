@@ -6,12 +6,19 @@ import SearchBar from "@/components/home/SearchBar";
 import CategoryBar from "@/components/home/CategoryBar";
 import ItemCard from "@/components/listing/ItemCard";
 import { getListings, Listing } from "@/lib/listings";
+import { useAuth } from "@/lib/auth-context";
+import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     getListings(50)
@@ -19,11 +26,46 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setFavoriteIds(new Set());
+      return;
+    }
+    getUserFavoriteIds(user.uid).then(setFavoriteIds);
+  }, [user]);
+
+  async function handleToggleFavorite(listingId: string) {
+    if (!user) {
+      router.push("/auth");
+      return;
+    }
+
+    const isFavorited = favoriteIds.has(listingId);
+    const next = new Set(favoriteIds);
+
+    // optimistic update
+    if (isFavorited) {
+      next.delete(listingId);
+    } else {
+      next.add(listingId);
+    }
+    setFavoriteIds(next);
+
+    try {
+      if (isFavorited) {
+        await removeFavorite(user.uid, listingId);
+      } else {
+        await addFavorite(user.uid, listingId);
+      }
+    } catch {
+      // revert on failure
+      setFavoriteIds(favoriteIds);
+    }
+  }
+
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
-      const matchesSearch = item.title
-        .toLowerCase()
-        .includes(search.toLowerCase());
+      const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = category ? item.category === category : true;
       return matchesSearch && matchesCategory;
     });
@@ -40,7 +82,6 @@ export default function Home() {
               <p className="text-sm text-gray-500">Good afternoon 👋</p>
               <h1 className="mt-1 text-3xl font-bold tracking-tight">Bazaaric</h1>
             </div>
-            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm">♡</button>
           </div>
 
           <h2 className="mt-8 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
@@ -59,11 +100,6 @@ export default function Home() {
             <h2 className="text-lg md:text-2xl font-bold">
               {search || category ? "Results" : "Fresh finds"}
             </h2>
-            {!search && !category && (
-              <button className="text-sm md:text-base text-gray-500 hover:text-black">
-                View all
-              </button>
-            )}
           </div>
 
           {loading ? (
@@ -84,6 +120,8 @@ export default function Home() {
                   price={`€${item.price}`}
                   location={item.location}
                   image={item.imageUrls[0] || "https://via.placeholder.com/500"}
+                  isFavorited={favoriteIds.has(item.id)}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               ))}
             </div>

@@ -4,6 +4,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  updateDoc,
+  deleteDoc,
   query,
   orderBy,
   limit as fbLimit,
@@ -40,21 +42,30 @@ type CreateListingInput = {
   status?: "active" | "draft";
 };
 
-export async function createListing(input: CreateListingInput) {
-  const {
-    title, description, category, price, location,
-    photos, sellerId, sellerEmail, status = "active",
-  } = input;
-
-  const imageUrls: string[] = [];
+export async function uploadPhotos(
+  sellerId: string,
+  photos: File[]
+): Promise<string[]> {
+  const urls: string[] = [];
 
   for (const photo of photos) {
     const path = `listings/${sellerId}/${Date.now()}-${photo.name}`;
     const storageRef = ref(storage, path);
     await uploadBytes(storageRef, photo);
     const url = await getDownloadURL(storageRef);
-    imageUrls.push(url);
+    urls.push(url);
   }
+
+  return urls;
+}
+
+export async function createListing(input: CreateListingInput) {
+  const {
+    title, description, category, price, location,
+    photos, sellerId, sellerEmail, status = "active",
+  } = input;
+
+  const imageUrls = await uploadPhotos(sellerId, photos);
 
   const docRef = await addDoc(collection(db, "listings"), {
     title, description, category, price, location, imageUrls,
@@ -93,4 +104,23 @@ export async function getListingsByUser(uid: string): Promise<Listing[]> {
 
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Listing));
+}
+
+export async function updateListing(
+  id: string,
+  updates: Partial<{
+    title: string;
+    description: string;
+    category: string;
+    price: number;
+    location: string;
+    imageUrls: string[];
+    status: "active" | "draft" | "sold";
+  }>
+) {
+  await updateDoc(doc(db, "listings", id), updates);
+}
+
+export async function deleteListing(id: string) {
+  await deleteDoc(doc(db, "listings", id));
 }

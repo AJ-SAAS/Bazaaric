@@ -7,6 +7,7 @@ import {
   Plus,
   MessageCircle,
   User,
+  Heart,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -117,6 +118,10 @@ export default function Navbar() {
             <Link href="/search" className="flex items-center gap-2 hover:text-black">
               <Search size={18} />
               Search
+            </Link>
+            <Link href="/favorites" className="flex items-center gap-2 hover:text-black">
+              <Heart size={18} />
+              Favorites
             </Link>
             <Link href="/inbox" className="flex items-center gap-2 hover:text-black">
               <MessageCircle size={18} />
