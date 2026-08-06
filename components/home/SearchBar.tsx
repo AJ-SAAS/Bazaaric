@@ -1,7 +1,11 @@
-export default function SearchBar() {
+type SearchBarProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+export default function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <div className="relative">
-
       <div
         className="
           flex
@@ -16,13 +20,12 @@ export default function SearchBar() {
           ring-black/5
         "
       >
-
-        <span className="text-gray-400 text-lg">
-          🔍
-        </span>
+        <span className="text-gray-400 text-lg">🔍</span>
 
         <input
           type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="Search clothes, electronics, furniture..."
           className="
             w-full
@@ -33,9 +36,7 @@ export default function SearchBar() {
             outline-none
           "
         />
-
       </div>
-
     </div>
   );
 }
