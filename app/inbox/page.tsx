@@ -12,6 +12,7 @@ export default function InboxPage() {
   const router = useRouter();
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(true);
+  const [chatsError, setChatsError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -19,10 +20,21 @@ export default function InboxPage() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = listenToUserChats(user.uid, (data) => {
-      setChats(data);
-      setChatsLoading(false);
-    });
+
+    const unsubscribe = listenToUserChats(
+      user.uid,
+      (data) => {
+        console.log("Inbox: fetched chats for", user.uid, data);
+        setChats(data);
+        setChatsLoading(false);
+      },
+      (error) => {
+        console.error("Inbox: error fetching chats", error);
+        setChatsError(error.message);
+        setChatsLoading(false);
+      }
+    );
+
     return () => unsubscribe();
   }, [user]);
 
@@ -40,6 +52,12 @@ export default function InboxPage() {
 
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         <h1 className="text-2xl md:text-3xl font-bold">Inbox</h1>
+
+        {chatsError && (
+          <p className="mt-6 text-sm text-red-600">
+            Couldn't load conversations: {chatsError}
+          </p>
+        )}
 
         {chatsLoading ? (
           <p className="mt-6 text-sm text-gray-500">Loading conversations...</p>

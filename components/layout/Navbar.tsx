@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   Home,
-  Search,
   Plus,
   MessageCircle,
   User,
@@ -46,9 +45,9 @@ export default function Navbar() {
             Home
           </Link>
 
-          <Link href="/search" className="flex flex-col items-center gap-1">
-            <Search size={21} />
-            Search
+          <Link href="/favorites" className="flex flex-col items-center gap-1">
+            <Heart size={21} />
+            Favorites
           </Link>
 
           <Link
@@ -114,10 +113,6 @@ export default function Navbar() {
             <Link href="/" className="flex items-center gap-2 hover:text-black">
               <Home size={18} />
               Home
-            </Link>
-            <Link href="/search" className="flex items-center gap-2 hover:text-black">
-              <Search size={18} />
-              Search
             </Link>
             <Link href="/favorites" className="flex items-center gap-2 hover:text-black">
               <Heart size={18} />

@@ -74,7 +74,11 @@ export async function getOrCreateChat(params: {
   return docRef.id;
 }
 
-export async function sendMessage(chatId: string, senderId: string, text: string) {
+export async function sendMessage(
+  chatId: string,
+  senderId: string,
+  text: string
+) {
   const trimmed = text.trim();
   if (!trimmed) return;
 
@@ -84,8 +88,9 @@ export async function sendMessage(chatId: string, senderId: string, text: string
     createdAt: serverTimestamp(),
   });
 
-  // Update chat preview fields — using addDoc's parent path directly
+  // Update chat preview fields
   const { updateDoc, doc: docRef } = await import("firebase/firestore");
+
   await updateDoc(docRef(db, "chats", chatId), {
     lastMessage: trimmed,
     lastMessageAt: serverTimestamp(),
@@ -103,7 +108,9 @@ export function listenToMessages(
   );
 
   return onSnapshot(q, (snap) => {
-    const messages = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
+    const messages = snap.docs.map(
+      (d) => ({ id: d.id, ...d.data() } as Message)
+    );
     callback(messages);
   });
 }
@@ -111,7 +118,8 @@ export function listenToMessages(
 // Real-time listener for a user's chat list (inbox)
 export function listenToUserChats(
   uid: string,
-  callback: (chats: Chat[]) => void
+  callback: (chats: Chat[]) => void,
+  onError?: (error: Error) => void
 ) {
   const q = query(
     collection(db, "chats"),
@@ -119,15 +127,38 @@ export function listenToUserChats(
     orderBy("lastMessageAt", "desc")
   );
 
-  return onSnapshot(q, (snap) => {
-    const chats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chat));
-    callback(chats);
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      const chats = snap.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as Chat)
+      );
+      callback(chats);
+    },
+    (error) => {
+      console.error("listenToUserChats error:", error);
+      if (onError) {
+        onError(error);
+      }
+    }
+  );
 }
 
 export async function getChat(chatId: string): Promise<Chat | null> {
-  const q = query(collection(db, "chats"), where("__name__", "==", chatId), fbLimit(1));
+  const q = query(
+    collection(db, "chats"),
+    where("__name__", "==", chatId),
+    fbLimit(1)
+  );
+
   const snap = await getDocs(q);
-  if (snap.empty) return null;
-  return { id: snap.docs[0].id, ...snap.docs[0].data() } as Chat;
+
+  if (snap.empty) {
+    return null;
+  }
+
+  return {
+    id: snap.docs[0].id,
+    ...snap.docs[0].data(),
+  } as Chat;
 }

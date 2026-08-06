@@ -15,6 +15,7 @@ export default function ProfilePage() {
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
+  const [listingsError, setListingsError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -23,7 +24,14 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     getListingsByUser(user.uid)
-      .then(setListings)
+      .then((data) => {
+        console.log("Profile: fetched listings for", user.uid, data);
+        setListings(data);
+      })
+      .catch((err) => {
+        console.error("Profile: error fetching listings", err);
+        setListingsError(err.message);
+      })
       .finally(() => setListingsLoading(false));
   }, [user]);
 
@@ -121,6 +129,12 @@ export default function ProfilePage() {
           </button>
         </div>
 
+        <div className="mt-4 flex justify-end">
+          <Link href="/favorites" className="text-sm font-semibold text-[#2F855A] hover:underline">
+            View favorites →
+          </Link>
+        </div>
+
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg md:text-2xl font-bold">Your listings</h2>
@@ -128,6 +142,12 @@ export default function ProfilePage() {
               + New listing
             </Link>
           </div>
+
+          {listingsError && (
+            <p className="text-sm text-red-600 mb-4">
+              Couldn't load your listings: {listingsError}
+            </p>
+          )}
 
           {listingsLoading ? (
             <p className="text-sm text-gray-500">Loading your listings...</p>
