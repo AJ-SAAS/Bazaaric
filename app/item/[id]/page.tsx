@@ -35,7 +35,7 @@ export default function ItemPage() {
 
   async function handleToggleFavorite() {
     if (!user) {
-      router.push("/auth");
+      router.push(`/auth?redirect=/item/${id}`);
       return;
     }
     const next = !isFavorited;
@@ -53,7 +53,7 @@ export default function ItemPage() {
 
   async function handleMessageSeller() {
     if (!user) {
-      router.push("/auth");
+      router.push(`/auth?redirect=/item/${id}`);
       return;
     }
     if (!listing) return;

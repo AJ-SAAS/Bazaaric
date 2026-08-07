@@ -36,7 +36,7 @@ export default function Home() {
 
   async function handleToggleFavorite(listingId: string) {
     if (!user) {
-      router.push("/auth");
+      router.push(`/auth?redirect=/`);
       return;
     }
 

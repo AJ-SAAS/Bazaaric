@@ -8,8 +8,11 @@ import {
   User,
   Heart,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Navbar() {
+  const { user } = useAuth();
+
   return (
     <>
       {/* Mobile bottom tab bar */}
@@ -73,10 +76,17 @@ export default function Navbar() {
             Inbox
           </Link>
 
-          <Link href="/profile" className="flex flex-col items-center gap-1">
-            <User size={21} />
-            Profile
-          </Link>
+          {user ? (
+            <Link href="/profile" className="flex flex-col items-center gap-1">
+              <User size={21} />
+              Profile
+            </Link>
+          ) : (
+            <Link href="/auth" className="flex flex-col items-center gap-1">
+              <User size={21} />
+              Log in
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -122,33 +132,57 @@ export default function Navbar() {
               <MessageCircle size={18} />
               Inbox
             </Link>
-            <Link href="/profile" className="flex items-center gap-2 hover:text-black">
-              <User size={18} />
-              Profile
-            </Link>
+            {user && (
+              <Link href="/profile" className="flex items-center gap-2 hover:text-black">
+                <User size={18} />
+                Profile
+              </Link>
+            )}
           </div>
 
-          <Link
-            href="/sell"
-            className="
-              flex
-              items-center
-              gap-2
-              rounded-full
-              bg-[#2F855A]
-              px-5
-              py-2.5
-              text-sm
-              font-semibold
-              text-white
-              shadow-sm
-              transition
-              hover:bg-[#276749]
-            "
-          >
-            <Plus size={18} />
-            Sell
-          </Link>
+          <div className="flex items-center gap-3">
+            {!user && (
+              <Link
+                href="/auth"
+                className="
+                  rounded-full
+                  border
+                  border-gray-300
+                  px-5
+                  py-2.5
+                  text-sm
+                  font-semibold
+                  text-gray-700
+                  transition
+                  hover:bg-gray-50
+                "
+              >
+                Sign up / Log in
+              </Link>
+            )}
+
+            <Link
+              href="/sell"
+              className="
+                flex
+                items-center
+                gap-2
+                rounded-full
+                bg-[#2F855A]
+                px-5
+                py-2.5
+                text-sm
+                font-semibold
+                text-white
+                shadow-sm
+                transition
+                hover:bg-[#276749]
+              "
+            >
+              <Plus size={18} />
+              Sell
+            </Link>
+          </div>
         </div>
       </nav>
     </>
