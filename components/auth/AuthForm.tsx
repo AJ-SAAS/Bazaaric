@@ -9,7 +9,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
 } from "firebase/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { auth, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -18,6 +18,8 @@ type Mode = "login" | "signup" | "reset";
 
 export default function AuthForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/profile";
 
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
@@ -40,8 +42,6 @@ export default function AuthForm() {
         return;
       }
 
-      // Set persistence before signing in/up:
-      // local = survives closing the browser, session = cleared when tab/browser closes
       await setPersistence(
         auth,
         rememberMe ? browserLocalPersistence : browserSessionPersistence
@@ -63,10 +63,10 @@ export default function AuthForm() {
           createdAt: new Date(),
         });
 
-        router.push("/profile");
+        router.push(redirectTo);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        router.push("/profile");
+        router.push(redirectTo);
       }
     } catch (error: any) {
       setMessage(error.message);
