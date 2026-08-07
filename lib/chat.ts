@@ -10,6 +10,8 @@ import {
   serverTimestamp,
   Timestamp,
   limit as fbLimit,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -23,6 +25,8 @@ export type Chat = {
   listingImage: string;
   lastMessage: string;
   lastMessageAt: Timestamp | null;
+  lastMessageSenderId: string;
+  readBy: string[];
   createdAt: Timestamp | null;
 };
 
@@ -43,7 +47,6 @@ export async function getOrCreateChat(params: {
 }): Promise<string> {
   const { listingId, listingTitle, listingImage, buyerId, sellerId } = params;
 
-  // Sellers can't message themselves
   if (buyerId === sellerId) {
     throw new Error("You can't message yourself about your own listing.");
   }
@@ -68,17 +71,15 @@ export async function getOrCreateChat(params: {
     listingImage,
     lastMessage: "",
     lastMessageAt: serverTimestamp(),
+    lastMessageSenderId: "",
+    readBy: [buyerId, sellerId], // no message yet, so nothing to be "unread"
     createdAt: serverTimestamp(),
   });
 
   return docRef.id;
 }
 
-export async function sendMessage(
-  chatId: string,
-  senderId: string,
-  text: string
-) {
+export async function sendMessage(chatId: string, senderId: string, text: string) {
   const trimmed = text.trim();
   if (!trimmed) return;
 
@@ -88,16 +89,21 @@ export async function sendMessage(
     createdAt: serverTimestamp(),
   });
 
-  // Update chat preview fields
-  const { updateDoc, doc: docRef } = await import("firebase/firestore");
-
-  await updateDoc(docRef(db, "chats", chatId), {
+  await updateDoc(doc(db, "chats", chatId), {
     lastMessage: trimmed,
     lastMessageAt: serverTimestamp(),
+    lastMessageSenderId: senderId,
+    readBy: [senderId], // reset — only the sender has "read" their own message
   });
 }
 
-// Real-time listener for messages in a chat
+// Call this when a user opens a chat, to mark it as read for them
+export async function markChatAsRead(chatId: string, userId: string) {
+  await updateDoc(doc(db, "chats", chatId), {
+    readBy: arrayUnion(userId),
+  });
+}
+
 export function listenToMessages(
   chatId: string,
   callback: (messages: Message[]) => void
@@ -108,14 +114,11 @@ export function listenToMessages(
   );
 
   return onSnapshot(q, (snap) => {
-    const messages = snap.docs.map(
-      (d) => ({ id: d.id, ...d.data() } as Message)
-    );
+    const messages = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
     callback(messages);
   });
 }
 
-// Real-time listener for a user's chat list (inbox)
 export function listenToUserChats(
   uid: string,
   callback: (chats: Chat[]) => void,
@@ -130,35 +133,19 @@ export function listenToUserChats(
   return onSnapshot(
     q,
     (snap) => {
-      const chats = snap.docs.map(
-        (d) => ({ id: d.id, ...d.data() } as Chat)
-      );
+      const chats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chat));
       callback(chats);
     },
     (error) => {
       console.error("listenToUserChats error:", error);
-      if (onError) {
-        onError(error);
-      }
+      if (onError) onError(error);
     }
   );
 }
 
 export async function getChat(chatId: string): Promise<Chat | null> {
-  const q = query(
-    collection(db, "chats"),
-    where("__name__", "==", chatId),
-    fbLimit(1)
-  );
-
+  const q = query(collection(db, "chats"), where("__name__", "==", chatId), fbLimit(1));
   const snap = await getDocs(q);
-
-  if (snap.empty) {
-    return null;
-  }
-
-  return {
-    id: snap.docs[0].id,
-    ...snap.docs[0].data(),
-  } as Chat;
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() } as Chat;
 }

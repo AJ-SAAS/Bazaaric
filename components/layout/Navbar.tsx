@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Home,
   Plus,
@@ -9,9 +10,27 @@ import {
   Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { listenToUserChats } from "@/lib/chat";
 
 export default function Navbar() {
   const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadCount(0);
+      return;
+    }
+
+    const unsubscribe = listenToUserChats(user.uid, (chats) => {
+      const count = chats.filter(
+        (c) => c.lastMessage && !c.readBy?.includes(user.uid)
+      ).length;
+      setUnreadCount(count);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   return (
     <>
@@ -71,9 +90,14 @@ export default function Navbar() {
             <Plus size={28} />
           </Link>
 
-          <Link href="/inbox" className="flex flex-col items-center gap-1">
+          <Link href="/inbox" className="relative flex flex-col items-center gap-1">
             <MessageCircle size={21} />
             Inbox
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 right-3 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Link>
 
           {user ? (
@@ -128,9 +152,14 @@ export default function Navbar() {
               <Heart size={18} />
               Favorites
             </Link>
-            <Link href="/inbox" className="flex items-center gap-2 hover:text-black">
+            <Link href="/inbox" className="relative flex items-center gap-2 hover:text-black">
               <MessageCircle size={18} />
               Inbox
+              {unreadCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
             {user && (
               <Link href="/profile" className="flex items-center gap-2 hover:text-black">

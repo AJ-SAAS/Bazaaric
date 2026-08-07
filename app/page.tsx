@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import SearchBar from "@/components/home/SearchBar";
 import CategoryBar from "@/components/home/CategoryBar";
@@ -43,7 +44,6 @@ export default function Home() {
     const isFavorited = favoriteIds.has(listingId);
     const next = new Set(favoriteIds);
 
-    // optimistic update
     if (isFavorited) {
       next.delete(listingId);
     } else {
@@ -58,7 +58,6 @@ export default function Home() {
         await addFavorite(user.uid, listingId);
       }
     } catch {
-      // revert on failure
       setFavoriteIds(favoriteIds);
     }
   }
@@ -74,6 +73,38 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
+
+      {!user && (
+        <section className="relative overflow-hidden bg-white">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 py-16 md:py-24">
+            <div className="max-w-md">
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+                Ready to declutter your closet?
+              </h1>
+
+              <p className="mt-4 text-base md:text-lg text-gray-600">
+                Buy and sell pre-loved fashion, electronics, and more across the Baltics.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/sell"
+                  className="rounded-full bg-[#2F855A] px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749]"
+                >
+                  Sell now
+                </Link>
+
+                <Link
+                  href="/auth"
+                  className="rounded-full border border-gray-300 px-8 py-3.5 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                >
+                  Learn how it works
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <header className="pt-6 md:pt-10">

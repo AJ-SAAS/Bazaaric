@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { listenToMessages, sendMessage, getChat, Chat, Message } from "@/lib/chat";
+import { listenToMessages, sendMessage, getChat, markChatAsRead, Chat, Message } from "@/lib/chat";
 import Navbar from "@/components/layout/Navbar";
 import { Send } from "lucide-react";
 
@@ -33,6 +33,11 @@ export default function ChatPage() {
     const unsubscribe = listenToMessages(chatId, setMessages);
     return () => unsubscribe();
   }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId || !user) return;
+    markChatAsRead(chatId, user.uid);
+  }, [chatId, user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
