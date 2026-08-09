@@ -24,6 +24,7 @@ export type Listing = {
   price: number;
   location: string;
   imageUrls: string[];
+  quantity: number;
   sellerId: string;
   sellerEmail: string;
   createdAt: Timestamp | null;
@@ -36,6 +37,7 @@ type CreateListingInput = {
   category: string;
   price: number;
   location: string;
+  quantity: number;
   photos: File[];
   sellerId: string;
   sellerEmail: string;
@@ -76,14 +78,14 @@ export async function deletePhotosByUrl(urls: string[]) {
 
 export async function createListing(input: CreateListingInput) {
   const {
-    title, description, category, price, location,
+    title, description, category, price, location, quantity,
     photos, sellerId, sellerEmail, status = "active",
   } = input;
 
   const imageUrls = await uploadPhotos(sellerId, photos);
 
   const docRef = await addDoc(collection(db, "listings"), {
-    title, description, category, price, location, imageUrls,
+    title, description, category, price, location, quantity, imageUrls,
     sellerId, sellerEmail,
     createdAt: serverTimestamp(),
     status,
@@ -129,6 +131,7 @@ export async function updateListing(
     category: string;
     price: number;
     location: string;
+    quantity: number;
     imageUrls: string[];
     status: "active" | "draft" | "sold";
   }>

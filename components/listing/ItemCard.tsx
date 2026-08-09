@@ -8,6 +8,7 @@ type ItemCardProps = {
   price: string;
   location: string;
   image: string;
+  quantity?: number;
   sold?: boolean;
   isFavorited?: boolean;
   onToggleFavorite?: (id: string) => void;
@@ -22,6 +23,7 @@ export default function ItemCard({
   price,
   location,
   image,
+  quantity,
   sold = false,
   isFavorited = false,
   onToggleFavorite,
@@ -54,6 +56,11 @@ export default function ItemCard({
           <p className="text-base md:text-lg font-semibold leading-tight">{price}</p>
           <p className="mt-1 text-sm md:text-base text-gray-800 line-clamp-1">{title}</p>
           <p className="mt-1 text-xs md:text-sm text-gray-500">{location}</p>
+          {quantity !== undefined && quantity > 1 && quantity <= 3 && (
+            <p className="mt-1 text-xs font-semibold text-amber-600">
+              Only {quantity} left
+            </p>
+          )}
         </div>
       </Link>
 

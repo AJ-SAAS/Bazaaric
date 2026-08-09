@@ -257,6 +257,12 @@ export default function ItemPage() {
                 <span className="text-gray-500">Location</span>
                 <span className="font-medium">{listing.location}</span>
               </div>
+              <div className="flex justify-between px-4 py-3 text-sm">
+                <span className="text-gray-500">Available</span>
+                <span className="font-medium">
+                  {listing.quantity > 1 ? `${listing.quantity} in stock` : "1 available"}
+                </span>
+              </div>
             </div>
 
             <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">

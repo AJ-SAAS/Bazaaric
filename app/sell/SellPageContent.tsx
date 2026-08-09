@@ -25,6 +25,7 @@ export default function SellPageContent() {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loadingListing, setLoadingListing] = useState(isEditMode);
@@ -44,6 +45,7 @@ export default function SellPageContent() {
       setCategory(listing.category);
       setLocation(listing.location);
       setPrice(String(listing.price));
+      setQuantity(String(listing.quantity ?? 1));
       setExistingImages(listing.imageUrls);
       setLoadingListing(false);
     });
@@ -78,9 +80,10 @@ export default function SellPageContent() {
     }
 
     const totalPhotos = existingImages.length + newPhotos.length;
+    const qty = parseInt(quantity, 10);
 
-    if (!title || !price || !category || totalPhotos === 0) {
-      setError("Please add at least one photo, a title, category, and price.");
+    if (!title || !price || !category || totalPhotos === 0 || !qty || qty < 1) {
+      setError("Please add at least one photo, a title, category, price, and quantity of at least 1.");
       return;
     }
 
@@ -100,6 +103,7 @@ export default function SellPageContent() {
           category,
           price: parseFloat(price),
           location: location || "Unknown",
+          quantity: qty,
           imageUrls: finalImageUrls,
           status,
         });
@@ -116,6 +120,7 @@ export default function SellPageContent() {
           category,
           price: parseFloat(price),
           location: location || "Unknown",
+          quantity: qty,
           photos: newPhotos.map((p) => p.file),
           sellerId: user.uid,
           sellerEmail: user.email || "",
@@ -272,6 +277,20 @@ export default function SellPageContent() {
                   className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4 border-t border-gray-100">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="1"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+              />
             </div>
           </div>
         </section>
