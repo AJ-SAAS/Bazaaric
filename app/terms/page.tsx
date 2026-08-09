@@ -13,7 +13,7 @@ export default function TermsPage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Terms of Service
         </h1>
-        <p className="mt-2 text-sm text-gray-500">Last updated: [Date]</p>
+        <p className="mt-2 text-sm text-gray-500">Last updated: August 9, 2026</p>
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-gray-700">
           <section>
@@ -23,7 +23,7 @@ export default function TermsPage() {
             <p>
               Bazaaric ("Bazaaric," "we," "us," or "our") is operated by
               Bazaaric LTD, a company registered in England and Wales, with a
-              registered address at [Address]. You can contact us at
+              registered address at London, UK. You can contact us at
               hello@bazaaric.com. Bazaaric provides an online platform ("the
               Platform") that allows users to list, browse, and communicate
               about items for sale, primarily within Lithuania, Latvia, and
