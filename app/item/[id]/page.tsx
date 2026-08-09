@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getListing, deleteListing, updateListing, Listing } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
-import { getOrCreateChat } from "@/lib/chat";
+import { getOrCreateChat, sendMessage } from "@/lib/chat";
+import { createOffer } from "@/lib/orders";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
 import Navbar from "@/components/layout/Navbar";
-import { Heart } from "lucide-react";
+import { Heart, ShieldAlert, X } from "lucide-react";
 
 export default function ItemPage() {
   const params = useParams();
@@ -22,6 +23,11 @@ export default function ItemPage() {
   const [messaging, setMessaging] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [updating, setUpdating] = useState(false);
+
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerAmount, setOfferAmount] = useState("");
+  const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [offerError, setOfferError] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -72,6 +78,65 @@ export default function ItemPage() {
       alert(err.message);
     } finally {
       setMessaging(false);
+    }
+  }
+
+  function openOfferModal() {
+    if (!user) {
+      router.push(`/auth?redirect=/item/${id}`);
+      return;
+    }
+    setOfferError("");
+    setOfferAmount("");
+    setShowOfferModal(true);
+  }
+
+  async function handleSubmitOffer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !listing) return;
+
+    const amount = parseFloat(offerAmount);
+    if (!amount || amount <= 0) {
+      setOfferError("Enter a valid offer amount.");
+      return;
+    }
+
+    setSubmittingOffer(true);
+    setOfferError("");
+
+    try {
+      await createOffer({
+        listingId: listing.id,
+        listingTitle: listing.title,
+        listingImage: listing.imageUrls[0] || "",
+        originalPrice: listing.price,
+        offerAmount: amount,
+        buyerId: user.uid,
+        buyerEmail: user.email || "",
+        sellerId: listing.sellerId,
+        sellerEmail: listing.sellerEmail,
+      });
+
+      const chatId = await getOrCreateChat({
+        listingId: listing.id,
+        listingTitle: listing.title,
+        listingImage: listing.imageUrls[0] || "",
+        buyerId: user.uid,
+        sellerId: listing.sellerId,
+      });
+
+      await sendMessage(
+        chatId,
+        user.uid,
+        `💬 Offered €${amount.toFixed(2)} for "${listing.title}" (listed at €${listing.price.toFixed(2)})`
+      );
+
+      setShowOfferModal(false);
+      router.push(`/chat/${chatId}`);
+    } catch (err: any) {
+      setOfferError(err.message || "Couldn't send your offer. Try again.");
+    } finally {
+      setSubmittingOffer(false);
     }
   }
 
@@ -175,17 +240,26 @@ export default function ItemPage() {
           <div className="mt-6 md:mt-0">
             <p className="text-2xl md:text-3xl font-bold">€{listing.price}</p>
             <h1 className="mt-2 text-xl md:text-2xl font-semibold">{listing.title}</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {listing.location} · {listing.category}
-            </p>
 
             {listing.description && (
-              <p className="mt-6 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+              <p className="mt-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
                 {listing.description}
               </p>
             )}
 
-            <div className="mt-8 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+            {/* Specs table */}
+            <div className="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
+              <div className="flex justify-between px-4 py-3 text-sm">
+                <span className="text-gray-500">Category</span>
+                <span className="font-medium">{listing.category}</span>
+              </div>
+              <div className="flex justify-between px-4 py-3 text-sm">
+                <span className="text-gray-500">Location</span>
+                <span className="font-medium">{listing.location}</span>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
               <p className="text-sm text-gray-500">Seller</p>
               <p className="mt-1 font-semibold">{listing.sellerEmail}</p>
             </div>
@@ -220,21 +294,95 @@ export default function ItemPage() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleMessageSeller}
-                disabled={messaging || listing.status === "sold"}
-                className="mt-6 w-full rounded-full bg-[#2F855A] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749] disabled:opacity-60"
-              >
-                {listing.status === "sold"
-                  ? "This item is sold"
-                  : messaging
-                  ? "Starting chat..."
-                  : "Message seller"}
-              </button>
+              <div className="mt-6 space-y-2">
+                <button
+                  onClick={handleMessageSeller}
+                  disabled={messaging || listing.status === "sold"}
+                  className="w-full rounded-full bg-[#2F855A] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749] disabled:opacity-60"
+                >
+                  {listing.status === "sold"
+                    ? "This item is sold"
+                    : messaging
+                    ? "Starting chat..."
+                    : "Message seller"}
+                </button>
+
+                {listing.status !== "sold" && (
+                  <button
+                    onClick={openOfferModal}
+                    className="w-full rounded-full border border-[#2F855A] px-6 py-3.5 text-sm font-semibold text-[#2F855A] transition hover:bg-[#2F855A]/5"
+                  >
+                    Make an offer
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Safety disclaimer */}
+            {!isOwnListing && (
+              <div className="mt-6 flex gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
+                <ShieldAlert size={18} className="shrink-0 text-amber-600 mt-0.5" />
+                <p className="text-xs leading-relaxed text-amber-800">
+                  Bazaaric does not process payments or verify buyers and
+                  sellers. All arrangements — including price, payment, and
+                  delivery or pickup — happen directly between you and the
+                  other party, entirely outside the platform. Meet in a safe,
+                  public location, inspect items before paying, and never
+                  send money before confirming what you're receiving. See
+                  our{" "}
+                  <a href="/terms" className="underline font-medium" target="_blank">
+                    Terms of Service
+                  </a>{" "}
+                  for full details.
+                </p>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Make an offer modal */}
+      {showOfferModal && (
+        <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Make an offer</h3>
+              <button onClick={() => setShowOfferModal(false)}>
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-500 mb-4">
+              Listed at <span className="font-semibold">€{listing.price}</span>
+            </p>
+
+            <form onSubmit={handleSubmitOffer} className="space-y-3">
+              <div className="flex items-center gap-1 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/10">
+                <span className="text-sm text-gray-500">€</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={offerAmount}
+                  onChange={(e) => setOfferAmount(e.target.value)}
+                  placeholder="0.00"
+                  autoFocus
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                />
+              </div>
+
+              {offerError && <p className="text-sm text-red-600">{offerError}</p>}
+
+              <button
+                type="submit"
+                disabled={submittingOffer}
+                className="w-full rounded-full bg-[#2F855A] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#276749] disabled:opacity-60"
+              >
+                {submittingOffer ? "Sending..." : "Send offer"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

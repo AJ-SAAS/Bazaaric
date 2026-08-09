@@ -13,7 +13,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 
 export type Listing = {
@@ -57,6 +57,21 @@ export async function uploadPhotos(
   }
 
   return urls;
+}
+
+// Best-effort deletion — a photo already gone or a permissions hiccup
+// shouldn't block the rest of the operation, so failures are swallowed.
+export async function deletePhotosByUrl(urls: string[]) {
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const storageRef = ref(storage, url);
+        await deleteObject(storageRef);
+      } catch (err) {
+        console.warn("Could not delete storage file:", url, err);
+      }
+    })
+  );
 }
 
 export async function createListing(input: CreateListingInput) {
@@ -121,6 +136,13 @@ export async function updateListing(
   await updateDoc(doc(db, "listings", id), updates);
 }
 
+// Deletes the Firestore doc AND any photos in Storage tied to it.
 export async function deleteListing(id: string) {
+  const listing = await getListing(id);
+
   await deleteDoc(doc(db, "listings", id));
+
+  if (listing && listing.imageUrls.length > 0) {
+    await deletePhotosByUrl(listing.imageUrls);
+  }
 }

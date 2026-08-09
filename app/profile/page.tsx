@@ -129,7 +129,10 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end gap-4">
+          <Link href="/offers" className="text-sm font-semibold text-[#2F855A] hover:underline">
+            View offers →
+          </Link>
           <Link href="/favorites" className="text-sm font-semibold text-[#2F855A] hover:underline">
             View favorites →
           </Link>

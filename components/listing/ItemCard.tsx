@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useState } from "react";
 
 type ItemCardProps = {
   id: string;
@@ -12,6 +13,9 @@ type ItemCardProps = {
   onToggleFavorite?: (id: string) => void;
 };
 
+const FALLBACK_IMAGE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-size='16' fill='%239ca3af' text-anchor='middle' dy='.3em'%3ENo image%3C/text%3E%3C/svg%3E";
+
 export default function ItemCard({
   id,
   title,
@@ -22,13 +26,16 @@ export default function ItemCard({
   isFavorited = false,
   onToggleFavorite,
 }: ItemCardProps) {
+  const [imgSrc, setImgSrc] = useState(image);
+
   return (
     <article className="group relative">
       <Link href={`/item/${id}`}>
         <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
           <img
-            src={image}
+            src={imgSrc}
             alt={title}
+            onError={() => setImgSrc(FALLBACK_IMAGE)}
             className={`h-full w-full object-cover transition duration-300 group-hover:scale-105 ${
               sold ? "opacity-50" : ""
             }`}

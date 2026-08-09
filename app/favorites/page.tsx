@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getUserFavoriteListings, removeFavorite } from "@/lib/favorites";
 import { Listing } from "@/lib/listings";
 import ItemCard from "@/components/listing/ItemCard";
+import ItemCardSkeleton from "@/components/listing/ItemCardSkeleton";
 import Navbar from "@/components/layout/Navbar";
 
 export default function FavoritesPage() {
@@ -48,7 +49,11 @@ export default function FavoritesPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Favorites</h1>
 
         {favoritesLoading ? (
-          <p className="mt-6 text-sm text-gray-500">Loading your favorites...</p>
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ItemCardSkeleton key={i} />
+            ))}
+          </div>
         ) : favorites.length === 0 ? (
           <p className="mt-6 text-sm text-gray-500">
             Nothing saved yet — tap the heart on an item to save it here.

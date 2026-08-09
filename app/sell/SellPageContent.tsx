@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { createListing, updateListing, getListing, uploadPhotos } from "@/lib/listings";
+import { createListing, updateListing, getListing, uploadPhotos, deletePhotosByUrl } from "@/lib/listings";
 
 const categories = ["Fashion", "Electronics", "Home", "Sports", "Kids", "Other"];
 
@@ -18,6 +18,7 @@ export default function SellPageContent() {
   const isEditMode = !!editId;
 
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
   const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -59,6 +60,8 @@ export default function SellPageContent() {
   }
 
   function removeExistingImage(index: number) {
+    const removed = existingImages[index];
+    setRemovedImageUrls((prev) => [...prev, removed]);
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   }
 
@@ -100,6 +103,11 @@ export default function SellPageContent() {
           imageUrls: finalImageUrls,
           status,
         });
+
+        if (removedImageUrls.length > 0) {
+          await deletePhotosByUrl(removedImageUrls);
+        }
+
         router.push(`/item/${editId}`);
       } else {
         const id = await createListing({

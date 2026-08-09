@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import SearchBar from "@/components/home/SearchBar";
 import CategoryBar from "@/components/home/CategoryBar";
 import ItemCard from "@/components/listing/ItemCard";
+import ItemCardSkeleton from "@/components/listing/ItemCardSkeleton";
 import { getListings, Listing } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
@@ -134,7 +135,11 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <p className="text-sm text-gray-500">Loading listings...</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <ItemCardSkeleton key={i} />
+              ))}
+            </div>
           ) : filteredListings.length === 0 ? (
             <p className="text-sm text-gray-500">
               {listings.length === 0
