@@ -10,6 +10,7 @@ import ItemCardSkeleton from "@/components/listing/ItemCardSkeleton";
 import { getListings, Listing } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
+import { getMutuallyBlockedUserIds } from "@/lib/moderation";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     getListings(50)
@@ -34,6 +36,14 @@ export default function Home() {
       return;
     }
     getUserFavoriteIds(user.uid).then(setFavoriteIds);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setBlockedIds(new Set());
+      return;
+    }
+    getMutuallyBlockedUserIds(user.uid).then(setBlockedIds);
   }, [user]);
 
   async function handleToggleFavorite(listingId: string) {
@@ -67,9 +77,10 @@ export default function Home() {
     return listings.filter((item) => {
       const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = category ? item.category === category : true;
-      return matchesSearch && matchesCategory;
+      const notBlocked = !blockedIds.has(item.sellerId);
+      return matchesSearch && matchesCategory && notBlocked;
     });
-  }, [listings, search, category]);
+  }, [listings, search, category, blockedIds]);
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
@@ -156,6 +167,7 @@ export default function Home() {
                   price={`€${item.price}`}
                   location={item.location}
                   image={item.imageUrls[0] || "https://via.placeholder.com/500"}
+                  quantity={item.quantity}
                   isFavorited={favoriteIds.has(item.id)}
                   onToggleFavorite={handleToggleFavorite}
                 />

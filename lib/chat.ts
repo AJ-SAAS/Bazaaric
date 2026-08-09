@@ -14,6 +14,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { isBlockedEitherWay } from "@/lib/moderation";
 
 export type Chat = {
   id: string;
@@ -51,6 +52,11 @@ export async function getOrCreateChat(params: {
     throw new Error("You can't message yourself about your own listing.");
   }
 
+  const blocked = await isBlockedEitherWay(buyerId, sellerId);
+  if (blocked) {
+    throw new Error("You can't message this user.");
+  }
+
   const q = query(
     collection(db, "chats"),
     where("listingId", "==", listingId),
@@ -82,6 +88,15 @@ export async function getOrCreateChat(params: {
 export async function sendMessage(chatId: string, senderId: string, text: string) {
   const trimmed = text.trim();
   if (!trimmed) return;
+
+  const chat = await getChat(chatId);
+  if (chat) {
+    const otherUserId = chat.buyerId === senderId ? chat.sellerId : chat.buyerId;
+    const blocked = await isBlockedEitherWay(senderId, otherUserId);
+    if (blocked) {
+      throw new Error("You can't send messages in this conversation.");
+    }
+  }
 
   await addDoc(collection(db, "chats", chatId, "messages"), {
     senderId,

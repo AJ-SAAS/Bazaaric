@@ -7,8 +7,10 @@ import { useAuth } from "@/lib/auth-context";
 import { getOrCreateChat, sendMessage } from "@/lib/chat";
 import { createOffer } from "@/lib/orders";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
+import { reportListing } from "@/lib/moderation";
 import Navbar from "@/components/layout/Navbar";
-import { Heart, ShieldAlert, X } from "lucide-react";
+import ReportModal from "@/components/moderation/ReportModal";
+import { Heart, ShieldAlert, X, Flag } from "lucide-react";
 
 export default function ItemPage() {
   const params = useParams();
@@ -28,6 +30,8 @@ export default function ItemPage() {
   const [offerAmount, setOfferAmount] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
   const [offerError, setOfferError] = useState("");
+
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -162,6 +166,18 @@ export default function ItemPage() {
     } finally {
       setUpdating(false);
     }
+  }
+
+  async function handleReportSubmit(reason: any, details: string) {
+    if (!user || !listing) return;
+    await reportListing({
+      reporterId: user.uid,
+      listingId: listing.id,
+      listingTitle: listing.title,
+      sellerId: listing.sellerId,
+      reason,
+      details,
+    });
   }
 
   if (loading) {
@@ -343,6 +359,22 @@ export default function ItemPage() {
                 </p>
               </div>
             )}
+
+            {!isOwnListing && (
+              <button
+                onClick={() => {
+                  if (!user) {
+                    router.push(`/auth?redirect=/item/${id}`);
+                    return;
+                  }
+                  setShowReportModal(true);
+                }}
+                className="mt-3 flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600"
+              >
+                <Flag size={13} />
+                Report this listing
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -388,6 +420,14 @@ export default function ItemPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {showReportModal && (
+        <ReportModal
+          title="Report this listing"
+          onClose={() => setShowReportModal(false)}
+          onSubmit={handleReportSubmit}
+        />
       )}
     </main>
   );

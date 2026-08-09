@@ -68,6 +68,7 @@ export default function FavoritesPage() {
                 price={`€${item.price}`}
                 location={item.location}
                 image={item.imageUrls[0] || "https://via.placeholder.com/500"}
+                quantity={item.quantity}
                 sold={item.status === "sold"}
                 isFavorited={true}
                 onToggleFavorite={handleRemove}

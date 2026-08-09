@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { listenToMessages, sendMessage, getChat, markChatAsRead, Chat, Message } from "@/lib/chat";
+import { blockUser, reportUser } from "@/lib/moderation";
 import Navbar from "@/components/layout/Navbar";
-import { Send } from "lucide-react";
+import ReportModal from "@/components/moderation/ReportModal";
+import { Send, MoreVertical, ShieldOff, Flag } from "lucide-react";
 
 export default function ChatPage() {
   const params = useParams();
@@ -18,6 +20,10 @@ export default function ChatPage() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -42,6 +48,40 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  function otherUserId() {
+    if (!chat || !user) return null;
+    return chat.buyerId === user.uid ? chat.sellerId : chat.buyerId;
+  }
+
+  async function handleBlock() {
+    const otherId = otherUserId();
+    if (!user || !otherId) return;
+    if (!confirm("Block this user? You won't see their listings or be able to message them.")) return;
+
+    setBlocking(true);
+    try {
+      await blockUser(user.uid, otherId);
+      router.push("/inbox");
+    } finally {
+      setBlocking(false);
+    }
+  }
+
+  async function handleReportSubmit(reason: any, details: string) {
+    const otherId = otherUserId();
+    if (!user || !otherId || !chat) return;
+
+    await reportUser({
+      reporterId: user.uid,
+      reportedUserId: otherId,
+      reportedUserEmail: "",
+      reason,
+      details,
+      chatId: chat.id,
+      listingId: chat.listingId,
+    });
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -70,13 +110,48 @@ export default function ChatPage() {
 
       <div className="mx-auto w-full max-w-md md:max-w-2xl px-4 md:px-8 pt-4 flex-1 flex flex-col">
         {chat && (
-          <div className="flex items-center gap-3 border-b border-black/5 pb-3">
-            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-              {chat.listingImage && (
-                <img src={chat.listingImage} alt={chat.listingTitle} className="h-full w-full object-cover" />
-              )}
+          <div className="relative flex items-center justify-between gap-3 border-b border-black/5 pb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                {chat.listingImage && (
+                  <img src={chat.listingImage} alt={chat.listingTitle} className="h-full w-full object-cover" />
+                )}
+              </div>
+              <p className="text-sm font-semibold truncate">{chat.listingTitle}</p>
             </div>
-            <p className="text-sm font-semibold truncate">{chat.listingTitle}</p>
+
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 top-10 z-20 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/5 py-1">
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowReportModal(true);
+                  }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <Flag size={15} />
+                  Report user
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleBlock();
+                  }}
+                  disabled={blocking}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <ShieldOff size={15} />
+                  Block user
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -129,6 +204,14 @@ export default function ChatPage() {
           </button>
         </form>
       </div>
+
+      {showReportModal && (
+        <ReportModal
+          title="Report this user"
+          onClose={() => setShowReportModal(false)}
+          onSubmit={handleReportSubmit}
+        />
+      )}
     </main>
   );
 }
