@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   Home,
@@ -139,8 +140,9 @@ export default function Navbar() {
             py-4
           "
         >
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Bazaaric
+          <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Bazaaric" width={32} height={32} />
+            <span className="text-xl font-bold tracking-tight">Bazaaric</span>
           </Link>
 
           <div className="flex items-center gap-8 text-sm font-medium text-gray-600">
