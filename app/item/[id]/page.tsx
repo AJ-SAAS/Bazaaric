@@ -194,7 +194,7 @@ export default function ItemPage() {
         <p className="text-lg font-semibold">Listing not found</p>
         <button
           onClick={() => router.push("/")}
-          className="rounded-full bg-[#2F855A] px-6 py-2.5 text-sm font-semibold text-white"
+          className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
         >
           Back to home
         </button>
@@ -243,7 +243,7 @@ export default function ItemPage() {
                     key={i}
                     onClick={() => setActiveImage(i)}
                     className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
-                      activeImage === i ? "ring-[#2F855A]" : "ring-transparent"
+                      activeImage === i ? "ring-teal" : "ring-transparent"
                     }`}
                   >
                     <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
@@ -300,7 +300,7 @@ export default function ItemPage() {
                     <button
                       onClick={handleMarkAsSold}
                       disabled={updating}
-                      className="w-full rounded-full bg-[#2F855A] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#276749] disabled:opacity-60"
+                      className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
                     >
                       Mark as sold
                     </button>
@@ -320,7 +320,7 @@ export default function ItemPage() {
                 <button
                   onClick={handleMessageSeller}
                   disabled={messaging || listing.status === "sold"}
-                  className="w-full rounded-full bg-[#2F855A] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749] disabled:opacity-60"
+                  className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
                 >
                   {listing.status === "sold"
                     ? "This item is sold"
@@ -332,7 +332,7 @@ export default function ItemPage() {
                 {listing.status !== "sold" && (
                   <button
                     onClick={openOfferModal}
-                    className="w-full rounded-full border border-[#2F855A] px-6 py-3.5 text-sm font-semibold text-[#2F855A] transition hover:bg-[#2F855A]/5"
+                    className="w-full rounded-full border border-teal px-6 py-3.5 text-sm font-semibold text-teal transition hover:bg-teal/5"
                   >
                     Make an offer
                   </button>
@@ -413,7 +413,7 @@ export default function ItemPage() {
               <button
                 type="submit"
                 disabled={submittingOffer}
-                className="w-full rounded-full bg-[#2F855A] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#276749] disabled:opacity-60"
+                className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
               >
                 {submittingOffer ? "Sending..." : "Send offer"}
               </button>

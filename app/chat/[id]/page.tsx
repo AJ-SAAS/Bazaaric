@@ -171,7 +171,7 @@ export default function ChatPage() {
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
                       isMine
-                        ? "bg-[#2F855A] text-white"
+                        ? "bg-teal text-white"
                         : "bg-white ring-1 ring-black/5 text-gray-900"
                     }`}
                   >
@@ -198,7 +198,7 @@ export default function ChatPage() {
           <button
             type="submit"
             disabled={sending || !text.trim()}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2F855A] text-white disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-teal text-white disabled:opacity-40"
           >
             <Send size={16} />
           </button>

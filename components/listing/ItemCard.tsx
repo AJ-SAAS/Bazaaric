@@ -57,7 +57,7 @@ export default function ItemCard({
           <p className="mt-1 text-sm md:text-base text-gray-800 line-clamp-1">{title}</p>
           <p className="mt-1 text-xs md:text-sm text-gray-500">{location}</p>
           {quantity !== undefined && quantity > 1 && quantity <= 3 && (
-            <p className="mt-1 text-xs font-semibold text-amber-600">
+            <p className="mt-1 inline-block rounded-full bg-lime px-2 py-0.5 text-xs font-semibold text-ink">
               Only {quantity} left
             </p>
           )}

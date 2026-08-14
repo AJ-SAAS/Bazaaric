@@ -82,7 +82,7 @@ export default function Navbar() {
               items-center
               justify-center
               rounded-full
-              bg-[#2F855A]
+              bg-teal
               text-white
               shadow-lg
             "
@@ -197,7 +197,7 @@ export default function Navbar() {
                 items-center
                 gap-2
                 rounded-full
-                bg-[#2F855A]
+                bg-teal
                 px-5
                 py-2.5
                 text-sm
@@ -205,7 +205,7 @@ export default function Navbar() {
                 text-white
                 shadow-sm
                 transition
-                hover:bg-[#276749]
+                hover:bg-teal-dark
               "
             >
               <Plus size={18} />

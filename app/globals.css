@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
-/* Minimal global styles for the app */
+@theme {
+  --color-ink: #0A0A0A;
+  --color-paper: #FFFFFF;
+  --color-teal: #00BCC8;
+  --color-teal-dark: #039098;
+  --color-lime: #D0FF00;
+}
+
 :root {
   --bg: #f8fafc;
 }

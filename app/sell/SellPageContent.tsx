@@ -149,7 +149,7 @@ export default function SellPageContent() {
         <p className="text-lg font-semibold">You need an account to sell</p>
         <button
           onClick={() => router.push("/auth")}
-          className="rounded-full bg-[#2F855A] px-6 py-2.5 text-sm font-semibold text-white"
+          className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
         >
           Log in or sign up
         </button>
@@ -195,7 +195,7 @@ export default function SellPageContent() {
               ))}
 
               {totalPhotos < 8 && (
-                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-[#2F855A] hover:text-[#2F855A]">
+                <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-teal hover:text-teal">
                   <Plus size={22} />
                   <span className="text-xs font-medium">Add photo</span>
                   <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
@@ -301,7 +301,7 @@ export default function SellPageContent() {
           <button
             onClick={() => handleSubmit("draft")}
             disabled={submitting}
-            className="rounded-full border border-[#2F855A] px-6 py-2.5 text-sm font-semibold text-[#2F855A] transition hover:bg-[#2F855A]/5 disabled:opacity-60"
+            className="rounded-full border border-teal px-6 py-2.5 text-sm font-semibold text-teal transition hover:bg-teal/5 disabled:opacity-60"
           >
             Save draft
           </button>
@@ -309,7 +309,7 @@ export default function SellPageContent() {
           <button
             onClick={() => handleSubmit("active")}
             disabled={submitting}
-            className="rounded-full bg-[#2F855A] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749] disabled:opacity-60"
+            className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
           >
             {submitting ? "Saving..." : isEditMode ? "Save changes" : "Upload"}
           </button>

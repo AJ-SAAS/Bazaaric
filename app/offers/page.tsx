@@ -136,7 +136,7 @@ export default function OffersPage() {
               <button
                 onClick={() => handleAccept(order)}
                 disabled={actingOn === order.id}
-                className="rounded-full bg-[#2F855A] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#276749] disabled:opacity-60"
+                className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
               >
                 Accept
               </button>

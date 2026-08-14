@@ -89,7 +89,7 @@ export default function ProfilePage() {
               {item.status === "active" && (
                 <button
                   onClick={() => handleMarkAsSold(item.id)}
-                  className="rounded-full bg-[#2F855A] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#276749]"
+                  className="rounded-full bg-teal px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark"
                 >
                   Mark sold
                 </button>
@@ -130,10 +130,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="mt-4 flex justify-end gap-4">
-          <Link href="/offers" className="text-sm font-semibold text-[#2F855A] hover:underline">
+          <Link href="/offers" className="text-sm font-semibold text-teal hover:underline">
             View offers →
           </Link>
-          <Link href="/favorites" className="text-sm font-semibold text-[#2F855A] hover:underline">
+          <Link href="/favorites" className="text-sm font-semibold text-teal hover:underline">
             View favorites →
           </Link>
         </div>
@@ -141,7 +141,7 @@ export default function ProfilePage() {
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg md:text-2xl font-bold">Your listings</h2>
-            <Link href="/sell" className="text-sm font-semibold text-[#2F855A] hover:underline">
+            <Link href="/sell" className="text-sm font-semibold text-teal hover:underline">
               + New listing
             </Link>
           </div>

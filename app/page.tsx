@@ -101,7 +101,7 @@ export default function Home() {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/sell"
-                  className="rounded-full bg-[#2F855A] px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-[#276749]"
+                  className="rounded-full bg-teal px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
                 >
                   Sell now
                 </Link>

@@ -64,7 +64,7 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
             </p>
             <button
               onClick={onClose}
-              className="mt-4 rounded-full bg-[#2F855A] px-6 py-2 text-sm font-semibold text-white"
+              className="mt-4 rounded-full bg-teal px-6 py-2 text-sm font-semibold text-white"
             >
               Close
             </button>

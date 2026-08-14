@@ -37,7 +37,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
               active:scale-95
               ${
                 isActive
-                  ? "bg-[#2F855A] text-white ring-[#2F855A]"
+                  ? "bg-teal text-white ring-teal"
                   : "bg-white ring-black/5"
               }
             `}
