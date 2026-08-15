@@ -120,14 +120,9 @@ export default function Home() {
 
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <header className="pt-6 md:pt-10">
-          <div className="flex justify-between items-start md:hidden">
-            <div>
-              <p className="text-sm text-gray-500">Good afternoon 👋</p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight">Bazaaric</h1>
-            </div>
-          </div>
+          <p className="text-sm text-gray-500 md:hidden">Good afternoon 👋</p>
 
-          <h2 className="mt-8 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
+          <h2 className="mt-2 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
 
           <div className="mt-4 md:mt-6 md:max-w-2xl">
             <SearchBar value={search} onChange={setSearch} />

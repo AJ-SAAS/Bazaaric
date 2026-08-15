@@ -9,6 +9,8 @@ import {
   MessageCircle,
   User,
   Heart,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listenToUserChats } from "@/lib/chat";
@@ -16,6 +18,7 @@ import { listenToUserChats } from "@/lib/chat";
 export default function Navbar() {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -35,6 +38,97 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Mobile top header */}
+      <nav
+        className="
+          sticky
+          top-0
+          z-50
+          border-b
+          border-black/5
+          bg-white/90
+          backdrop-blur
+          md:hidden
+        "
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href="/" className="flex items-center" onClick={() => setMenuOpen(false)}>
+            <Image src="/logo.png" alt="Bazaaric" width={36} height={36} priority />
+          </Link>
+
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100"
+            aria-label="Menu"
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        {menuOpen && (
+          <div className="border-t border-black/5 bg-white px-4 py-3 space-y-1">
+            <Link
+              href="/"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Home size={18} />
+              Home
+            </Link>
+            <Link
+              href="/favorites"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Heart size={18} />
+              Favorites
+            </Link>
+            <Link
+              href="/inbox"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <MessageCircle size={18} />
+              Inbox
+              {unreadCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+
+            {user ? (
+              <Link
+                href="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <User size={18} />
+                Profile
+              </Link>
+            ) : (
+              <Link
+                href="/auth"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <User size={18} />
+                Log in
+              </Link>
+            )}
+
+            <Link
+              href="/sell"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center justify-center gap-2 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark mt-2"
+            >
+              <Plus size={18} />
+              Sell
+            </Link>
+          </div>
+        )}
+      </nav>
+
       {/* Mobile bottom tab bar */}
       <nav
         className="
@@ -141,7 +235,7 @@ export default function Navbar() {
           "
         >
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Bazaaric" width={32} height={32} />
+            <Image src="/logo.png" alt="Bazaaric" width={44} height={44} priority />
             <span className="text-xl font-bold tracking-tight">Bazaaric</span>
           </Link>
 
