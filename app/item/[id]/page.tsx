@@ -239,6 +239,7 @@ export default function ItemPage() {
           <div>
             <div
               className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
+              style={{ touchAction: "pan-y" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -302,10 +303,10 @@ export default function ItemPage() {
 
           <div className="mt-6 md:mt-0">
             <p className="text-2xl md:text-3xl font-bold">€{listing.price}</p>
-            <h1 className="mt-2 text-xl md:text-2xl font-semibold">{listing.title}</h1>
+            <h1 className="mt-2 text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
 
             {listing.description && (
-              <p className="mt-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+              <p className="mt-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-words">
                 {listing.description}
               </p>
             )}
@@ -314,11 +315,11 @@ export default function ItemPage() {
             <div className="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
               <div className="flex justify-between px-4 py-3 text-sm">
                 <span className="text-gray-500">Category</span>
-                <span className="font-medium">{listing.category}</span>
+                <span className="font-medium break-words text-right">{listing.category}</span>
               </div>
               <div className="flex justify-between px-4 py-3 text-sm">
                 <span className="text-gray-500">Location</span>
-                <span className="font-medium">{listing.location}</span>
+                <span className="font-medium break-words text-right">{listing.location}</span>
               </div>
               <div className="flex justify-between px-4 py-3 text-sm">
                 <span className="text-gray-500">Available</span>
@@ -330,7 +331,7 @@ export default function ItemPage() {
 
             <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
               <p className="text-sm text-gray-500">Seller</p>
-              <p className="mt-1 font-semibold">{listing.sellerEmail}</p>
+              <p className="mt-1 font-semibold break-all">{listing.sellerEmail}</p>
             </div>
 
             {isOwnListing ? (
