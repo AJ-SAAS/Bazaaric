@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { createListing, updateListing, getListing, uploadPhotos, deletePhotosByUrl, Condition } from "@/lib/listings";
+import { createListing, updateListing, getListing, uploadPhotos, deletePhotosByUrl } from "@/lib/listings";
+import type { Condition } from "@/lib/listings";
 
 const categories = ["Fashion", "Electronics", "Home", "Sports", "Kids", "Other"];
 const conditions: { value: Condition; label: string }[] = [
@@ -107,7 +108,7 @@ export default function SellPageContent() {
           title,
           description,
           category,
-          condition,
+          condition: condition as Condition,
           price: parseFloat(price),
           location: location || "Unknown",
           quantity: qty,
@@ -125,7 +126,7 @@ export default function SellPageContent() {
           title,
           description,
           category,
-          condition,
+          condition: condition as Condition,
           price: parseFloat(price),
           location: location || "Unknown",
           quantity: qty,
@@ -239,3 +240,104 @@ export default function SellPageContent() {
             </div>
           </div>
         </section>
+
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">Item details</h2>
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-transparent text-sm outline-none text-gray-900"
+              >
+                <option value="" disabled>Select a category</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Condition</label>
+              <select
+                value={condition}
+                onChange={(e) => setCondition(e.target.value as Condition)}
+                className="w-full bg-transparent text-sm outline-none text-gray-900"
+              >
+                <option value="" disabled>Select a condition</option>
+                {conditions.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Vilnius"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">Pricing</h2>
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Price</label>
+              <div className="flex items-center gap-1 w-full">
+                <span className="text-sm text-gray-500">€</span>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4 border-t border-gray-100">
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="1"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+        </section>
+
+        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+
+        <div className="mt-10 flex justify-end gap-3">
+          <button
+            onClick={() => handleSubmit("draft")}
+            disabled={submitting}
+            className="rounded-full border border-teal px-6 py-2.5 text-sm font-semibold text-teal transition hover:bg-teal/5 disabled:opacity-60"
+          >
+            Save draft
+          </button>
+
+          <button
+            onClick={() => handleSubmit("active")}
+            disabled={submitting}
+            className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
+          >
+            {submitting ? "Saving..." : isEditMode ? "Save changes" : "Upload"}
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
