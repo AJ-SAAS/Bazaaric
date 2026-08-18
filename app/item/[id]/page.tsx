@@ -33,7 +33,6 @@ export default function ItemPage() {
 
   const [showReportModal, setShowReportModal] = useState(false);
 
-  // Swipe gesture refs — don't trigger re-renders on every touch move
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
 
@@ -196,7 +195,7 @@ export default function ItemPage() {
 
   function handleTouchEnd() {
     if (!listing) return;
-    const threshold = 40; // px swipe needed before it counts
+    const threshold = 25; // lowered from 40 — snappier response
 
     if (touchDeltaX.current > threshold) {
       setActiveImage((prev) => Math.max(prev - 1, 0));
@@ -231,12 +230,12 @@ export default function ItemPage() {
   const isOwnListing = user?.uid === listing.sellerId;
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
+    <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12 overflow-x-hidden">
       <Navbar />
 
       <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
+        <div className="grid md:grid-cols-2 gap-8 min-w-0">
+          <div className="min-w-0">
             <div
               className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
               style={{ touchAction: "pan-y" }}
@@ -248,9 +247,8 @@ export default function ItemPage() {
                 src={listing.imageUrls[activeImage]}
                 alt={listing.title}
                 draggable={false}
-                className={`h-full w-full object-cover transition-opacity duration-150 ${
-                  listing.status === "sold" ? "opacity-50" : ""
-                }`}
+                className="h-full w-full object-cover"
+                style={{ opacity: listing.status === "sold" ? 0.5 : 1 }}
               />
 
               {listing.status === "sold" && (
@@ -301,7 +299,7 @@ export default function ItemPage() {
             )}
           </div>
 
-          <div className="mt-6 md:mt-0">
+          <div className="mt-6 md:mt-0 min-w-0">
             <p className="text-2xl md:text-3xl font-bold">€{listing.price}</p>
             <h1 className="mt-2 text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
 
@@ -313,16 +311,16 @@ export default function ItemPage() {
 
             {/* Specs table */}
             <div className="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
-              <div className="flex justify-between px-4 py-3 text-sm">
-                <span className="text-gray-500">Category</span>
-                <span className="font-medium break-words text-right">{listing.category}</span>
+              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-gray-500 shrink-0">Category</span>
+                <span className="font-medium break-words text-right min-w-0">{listing.category}</span>
               </div>
-              <div className="flex justify-between px-4 py-3 text-sm">
-                <span className="text-gray-500">Location</span>
-                <span className="font-medium break-words text-right">{listing.location}</span>
+              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-gray-500 shrink-0">Location</span>
+                <span className="font-medium break-words text-right min-w-0">{listing.location}</span>
               </div>
-              <div className="flex justify-between px-4 py-3 text-sm">
-                <span className="text-gray-500">Available</span>
+              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-gray-500 shrink-0">Available</span>
                 <span className="font-medium">
                   {listing.quantity > 1 ? `${listing.quantity} in stock` : "1 available"}
                 </span>
@@ -392,7 +390,7 @@ export default function ItemPage() {
             {!isOwnListing && (
               <div className="mt-6 flex gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
                 <ShieldAlert size={18} className="shrink-0 text-amber-600 mt-0.5" />
-                <p className="text-xs leading-relaxed text-amber-800">
+                <p className="text-xs leading-relaxed text-amber-800 min-w-0 break-words">
                   Bazaaric does not process payments or verify buyers and
                   sellers. All arrangements — including price, payment, and
                   delivery or pickup — happen directly between you and the
