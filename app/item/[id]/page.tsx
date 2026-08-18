@@ -183,7 +183,6 @@ export default function ItemPage() {
     });
   }
 
-  // --- Swipe gesture handlers for the main image ---
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
     touchDeltaX.current = 0;
@@ -195,7 +194,7 @@ export default function ItemPage() {
 
   function handleTouchEnd() {
     if (!listing) return;
-    const threshold = 25; // lowered from 40 — snappier response
+    const threshold = 25;
 
     if (touchDeltaX.current > threshold) {
       setActiveImage((prev) => Math.max(prev - 1, 0));
@@ -316,11 +315,17 @@ export default function ItemPage() {
                 <span className="font-medium break-words text-right min-w-0">{listing.category}</span>
               </div>
               <div className="flex justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-gray-500 shrink-0">Condition</span>
+                <span className="font-medium break-words text-right min-w-0">
+                  {listing.condition === "new" ? "Brand new" : listing.condition === "used" ? "Used" : "Not specified"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-gray-500 shrink-0">Location</span>
                 <span className="font-medium break-words text-right min-w-0">{listing.location}</span>
               </div>
-              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 shrink-0">Available</span>
+              <div className="flex justify-between px-4 py-3 text-sm">
+                <span className="text-gray-500">Available</span>
                 <span className="font-medium">
                   {listing.quantity > 1 ? `${listing.quantity} in stock` : "1 available"}
                 </span>

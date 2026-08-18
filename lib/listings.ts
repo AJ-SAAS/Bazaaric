@@ -16,11 +16,14 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 
+export type Condition = "new" | "used";
+
 export type Listing = {
   id: string;
   title: string;
   description: string;
   category: string;
+  condition: Condition;
   price: number;
   location: string;
   imageUrls: string[];
@@ -35,6 +38,7 @@ type CreateListingInput = {
   title: string;
   description: string;
   category: string;
+  condition: Condition;
   price: number;
   location: string;
   quantity: number;
@@ -78,14 +82,14 @@ export async function deletePhotosByUrl(urls: string[]) {
 
 export async function createListing(input: CreateListingInput) {
   const {
-    title, description, category, price, location, quantity,
+    title, description, category, condition, price, location, quantity,
     photos, sellerId, sellerEmail, status = "active",
   } = input;
 
   const imageUrls = await uploadPhotos(sellerId, photos);
 
   const docRef = await addDoc(collection(db, "listings"), {
-    title, description, category, price, location, quantity, imageUrls,
+    title, description, category, condition, price, location, quantity, imageUrls,
     sellerId, sellerEmail,
     createdAt: serverTimestamp(),
     status,
@@ -129,6 +133,7 @@ export async function updateListing(
     title: string;
     description: string;
     category: string;
+    condition: Condition;
     price: number;
     location: string;
     quantity: number;
