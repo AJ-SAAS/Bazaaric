@@ -12,6 +12,12 @@ export const metadata = {
   description: "Buy and sell across the Baltics",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({
   children,
 }: {

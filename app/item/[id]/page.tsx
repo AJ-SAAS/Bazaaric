@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getListing, deleteListing, updateListing, Listing } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
@@ -32,6 +32,10 @@ export default function ItemPage() {
   const [offerError, setOfferError] = useState("");
 
   const [showReportModal, setShowReportModal] = useState(false);
+
+  // Swipe gesture refs — don't trigger re-renders on every touch move
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
 
   useEffect(() => {
     if (!id) return;
@@ -180,6 +184,28 @@ export default function ItemPage() {
     });
   }
 
+  // --- Swipe gesture handlers for the main image ---
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  }
+
+  function handleTouchEnd() {
+    if (!listing) return;
+    const threshold = 40; // px swipe needed before it counts
+
+    if (touchDeltaX.current > threshold) {
+      setActiveImage((prev) => Math.max(prev - 1, 0));
+    } else if (touchDeltaX.current < -threshold) {
+      setActiveImage((prev) => Math.min(prev + 1, listing.imageUrls.length - 1));
+    }
+    touchDeltaX.current = 0;
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -211,11 +237,19 @@ export default function ItemPage() {
       <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
         <div className="grid md:grid-cols-2 gap-8">
           <div>
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100">
+            <div
+              className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
                 src={listing.imageUrls[activeImage]}
                 alt={listing.title}
-                className={`h-full w-full object-cover ${listing.status === "sold" ? "opacity-50" : ""}`}
+                draggable={false}
+                className={`h-full w-full object-cover transition-opacity duration-150 ${
+                  listing.status === "sold" ? "opacity-50" : ""
+                }`}
               />
 
               {listing.status === "sold" && (
@@ -233,6 +267,19 @@ export default function ItemPage() {
                 >
                   <Heart size={18} className={isFavorited ? "fill-red-500 text-red-500" : ""} />
                 </button>
+              )}
+
+              {listing.imageUrls.length > 1 && (
+                <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5 md:hidden">
+                  {listing.imageUrls.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        activeImage === i ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 
@@ -404,7 +451,7 @@ export default function ItemPage() {
                   onChange={(e) => setOfferAmount(e.target.value)}
                   placeholder="0.00"
                   autoFocus
-                  className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                  className="w-full bg-transparent text-base md:text-sm outline-none placeholder:text-gray-400"
                 />
               </div>
 
