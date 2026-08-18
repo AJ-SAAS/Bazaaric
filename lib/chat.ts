@@ -60,7 +60,7 @@ export async function getOrCreateChat(params: {
   const q = query(
     collection(db, "chats"),
     where("listingId", "==", listingId),
-    where("buyerId", "==", buyerId)
+    where("participants", "array-contains", buyerId)
   );
 
   const existing = await getDocs(q);
