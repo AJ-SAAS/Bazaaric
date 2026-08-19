@@ -267,13 +267,13 @@ export default function ItemPage() {
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12 overflow-x-hidden">
       <Navbar />
 
-      <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
-        <div className="grid md:grid-cols-2 gap-8 min-w-0">
+      <div className="mx-auto max-w-[1600px] px-4 md:px-10 pt-6 md:pt-10">
+        <div className="grid md:grid-cols-[1.4fr_1fr] gap-8 md:gap-12 min-w-0">
           {/* Image column */}
           <div className="min-w-0">
             <div className="flex gap-3">
               {listing.imageUrls.length > 1 && (
-                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[500px] overflow-y-auto">
+                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[600px] overflow-y-auto">
                   {listing.imageUrls.map((url, i) => (
                     <button
                       key={i}
