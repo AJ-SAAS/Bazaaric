@@ -32,8 +32,6 @@ export type Order = {
   sellerId: string;
   sellerEmail: string;
   status: OrderStatus;
-  // Reserved for future payment integration (Stripe Connect, etc.)
-  // "not_applicable" until checkout exists — flips to unpaid/paid/refunded later
   paymentStatus: "not_applicable" | "unpaid" | "paid" | "refunded";
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
@@ -77,13 +75,18 @@ export async function declineOffer(orderId: string) {
   await updateOrderStatus(orderId, "offer_declined");
 }
 
+// Either party marks the exchange as done — meetup completed, item handed
+// over. This is what unlocks leaving a review for this order.
+export async function completeOrder(orderId: string) {
+  await updateOrderStatus(orderId, "completed");
+}
+
 export async function getOrder(orderId: string): Promise<Order | null> {
   const snap = await getDoc(doc(db, "orders", orderId));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as Order;
 }
 
-// Fetches orders where the user is either buyer or seller
 export async function getOrdersForUser(uid: string): Promise<Order[]> {
   const buyerQ = query(
     collection(db, "orders"),

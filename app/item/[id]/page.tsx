@@ -2,15 +2,18 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { getListing, deleteListing, updateListing, Listing } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
 import { getOrCreateChat, sendMessage } from "@/lib/chat";
 import { createOffer } from "@/lib/orders";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
 import { reportListing } from "@/lib/moderation";
+import { getPublicProfile, PublicProfile } from "@/lib/profiles";
+import { getRatingStats, RatingStats } from "@/lib/reviews";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
-import { Heart, ShieldAlert, X, Flag } from "lucide-react";
+import { Heart, ShieldAlert, X, Flag, Star, ChevronRight } from "lucide-react";
 
 export default function ItemPage() {
   const params = useParams();
@@ -26,6 +29,9 @@ export default function ItemPage() {
   const [isFavorited, setIsFavorited] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
+  const [sellerStats, setSellerStats] = useState<RatingStats | null>(null);
+
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerAmount, setOfferAmount] = useState("");
   const [submittingOffer, setSubmittingOffer] = useState(false);
@@ -40,6 +46,12 @@ export default function ItemPage() {
     if (!id) return;
     getListing(id).then(setListing).finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!listing) return;
+    getPublicProfile(listing.sellerId).then(setSellerProfile);
+    getRatingStats(listing.sellerId).then(setSellerStats);
+  }, [listing]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -227,6 +239,7 @@ export default function ItemPage() {
   }
 
   const isOwnListing = user?.uid === listing.sellerId;
+  const sellerDisplayName = sellerProfile?.username || "Bazaaric seller";
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12 overflow-x-hidden">
@@ -332,10 +345,27 @@ export default function ItemPage() {
               </div>
             </div>
 
-            <div className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-              <p className="text-sm text-gray-500">Seller</p>
-              <p className="mt-1 font-semibold break-all">{listing.sellerEmail}</p>
-            </div>
+            {/* Seller card — username, rating, link to their other listings */}
+            <Link
+              href={`/seller/${listing.sellerId}`}
+              className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50"
+            >
+              <div className="min-w-0">
+                <p className="text-sm text-gray-500">Seller</p>
+                <p className="mt-1 font-semibold break-words">{sellerDisplayName}</p>
+
+                {sellerStats && sellerStats.count > 0 ? (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
+                    {sellerStats.average.toFixed(1)} · {sellerStats.positivePercent}% positive · {sellerStats.count} review{sellerStats.count === 1 ? "" : "s"}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400">No reviews yet</p>
+                )}
+              </div>
+
+              <ChevronRight size={18} className="shrink-0 text-gray-400" />
+            </Link>
 
             {isOwnListing ? (
               <div className="mt-6 space-y-2">

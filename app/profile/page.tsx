@@ -6,8 +6,19 @@ import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getListingsByUser, deleteListing, updateListing, Listing } from "@/lib/listings";
+import {
+  getPublicProfile,
+  claimUsername,
+  changeUsername,
+  getUsernameChangeEligibility,
+  isValidUsername,
+  PublicProfile,
+} from "@/lib/profiles";
+import { updateDisplayName, getUserName, changeUserPassword } from "@/lib/account";
+import { getRatingStats, RatingStats } from "@/lib/reviews";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
+import { Plus, Star } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -17,6 +28,26 @@ export default function ProfilePage() {
   const [listingsLoading, setListingsLoading] = useState(true);
   const [listingsError, setListingsError] = useState("");
 
+  // Settings state
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [stats, setStats] = useState<RatingStats | null>(null);
+  const [nextUsernameEligible, setNextUsernameEligible] = useState<Date | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
+  const [nameInput, setNameInput] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameMessage, setNameMessage] = useState("");
+
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [usernameMessage, setUsernameMessage] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
   }, [user, loading, router]);
@@ -24,15 +55,27 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     getListingsByUser(user.uid)
-      .then((data) => {
-        console.log("Profile: fetched listings for", user.uid, data);
-        setListings(data);
-      })
-      .catch((err) => {
-        console.error("Profile: error fetching listings", err);
-        setListingsError(err.message);
-      })
+      .then(setListings)
+      .catch((err) => setListingsError(err.message))
       .finally(() => setListingsLoading(false));
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    Promise.all([
+      getPublicProfile(user.uid),
+      getUserName(user.uid),
+      getUsernameChangeEligibility(user.uid),
+      getRatingStats(user.uid),
+    ]).then(([p, name, eligibility, s]) => {
+      setProfile(p);
+      setUsernameInput(p?.username || "");
+      setNameInput(name);
+      setNextUsernameEligible(eligibility);
+      setStats(s);
+      setSettingsLoading(false);
+    });
   }, [user]);
 
   async function handleMarkAsSold(id: string) {
@@ -48,6 +91,82 @@ export default function ProfilePage() {
     setListings((prev) => prev.filter((l) => l.id !== id));
   }
 
+  async function handleSaveName() {
+    if (!user) return;
+    setNameSaving(true);
+    setNameMessage("");
+    try {
+      await updateDisplayName(user.uid, nameInput);
+      setNameMessage("Name updated.");
+    } catch (err: any) {
+      setNameMessage(err.message || "Couldn't update your name.");
+    } finally {
+      setNameSaving(false);
+    }
+  }
+
+  async function handleSaveUsername() {
+    if (!user) return;
+
+    const validationError = isValidUsername(usernameInput);
+    if (validationError) {
+      setUsernameMessage(validationError);
+      return;
+    }
+
+    setUsernameSaving(true);
+    setUsernameMessage("");
+
+    try {
+      if (!profile) {
+        await claimUsername(user.uid, usernameInput);
+      } else {
+        await changeUsername(user.uid, usernameInput);
+      }
+
+      const [updatedProfile, eligibility] = await Promise.all([
+        getPublicProfile(user.uid),
+        getUsernameChangeEligibility(user.uid),
+      ]);
+      setProfile(updatedProfile);
+      setNextUsernameEligible(eligibility);
+      setUsernameMessage("Username updated.");
+    } catch (err: any) {
+      setUsernameMessage(err.message || "Couldn't update your username.");
+    } finally {
+      setUsernameSaving(false);
+    }
+  }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+
+    setPasswordMessage("");
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage("New passwords don't match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+    try {
+      await changeUserPassword(user, currentPassword, newPassword);
+      setPasswordMessage("Password updated.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      setPasswordMessage(
+        err.code === "auth/wrong-password" || err.code === "auth/invalid-credential"
+          ? "Current password is incorrect."
+          : err.message || "Couldn't update your password."
+      );
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   if (loading || !user) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -59,6 +178,8 @@ export default function ProfilePage() {
   const activeListings = listings.filter((l) => l.status === "active");
   const draftListings = listings.filter((l) => l.status === "draft");
   const soldListings = listings.filter((l) => l.status === "sold");
+
+  const usernameLocked = !!profile && !!nextUsernameEligible;
 
   function ListingRow({ item }: { item: Listing }) {
     return (
@@ -115,19 +236,48 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         <h1 className="text-2xl md:text-3xl font-bold">Profile</h1>
 
-        <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500">Signed in as</p>
-            <p className="mt-1 font-semibold">{user.email}</p>
-          </div>
+        <div className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="text-sm text-gray-500">Signed in as</p>
+              <p className="mt-1 font-semibold break-all">{user.email}</p>
 
-          <button
-            onClick={() => signOut(auth)}
-            className="rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-          >
-            Log out
-          </button>
+              {profile?.username && (
+                <p className="mt-1 text-sm text-gray-600 break-words">@{profile.username}</p>
+              )}
+
+              {stats && stats.count > 0 && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+                  <Star size={12} className="fill-amber-400 text-amber-400" />
+                  {stats.average.toFixed(1)} · {stats.positivePercent}% positive · {stats.count} review{stats.count === 1 ? "" : "s"}
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={() => signOut(auth)}
+              className="shrink-0 rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Log out
+            </button>
+          </div>
         </div>
+
+        {!settingsLoading && !profile && (
+          <div className="mt-4 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
+            <p className="text-sm text-amber-800">
+              You don't have a username yet — set one below so buyers see your name instead of your email.
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={() => router.push("/sell")}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-teal py-4 text-base font-semibold text-white shadow-sm transition hover:bg-teal-dark"
+        >
+          <Plus size={20} />
+          Create new listing
+        </button>
 
         <div className="mt-4 flex justify-end gap-4">
           <Link href="/offers" className="text-sm font-semibold text-teal hover:underline">
@@ -138,12 +288,115 @@ export default function ProfilePage() {
           </Link>
         </div>
 
+        {/* Account settings */}
+        <section className="mt-10">
+          <h2 className="mb-4 text-lg md:text-2xl font-bold">Account settings</h2>
+
+          <div className="space-y-4">
+            {/* Display name */}
+            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+              <label className="text-sm font-medium text-gray-700">Name</label>
+              <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+                <button
+                  onClick={handleSaveName}
+                  disabled={nameSaving || settingsLoading}
+                  className="shrink-0 rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                >
+                  {nameSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+              {nameMessage && <p className="mt-2 text-xs text-gray-600">{nameMessage}</p>}
+            </div>
+
+            {/* Username */}
+            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+              <label className="text-sm font-medium text-gray-700">Username</label>
+              <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  placeholder="Choose a username"
+                  disabled={usernameLocked}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal disabled:opacity-60"
+                />
+                <button
+                  onClick={handleSaveUsername}
+                  disabled={usernameSaving || settingsLoading || usernameLocked}
+                  className="shrink-0 rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                >
+                  {usernameSaving ? "Saving..." : profile ? "Change" : "Claim"}
+                </button>
+              </div>
+
+              {usernameLocked && nextUsernameEligible && (
+                <p className="mt-2 text-xs text-gray-500">
+                  You can change your username again on {nextUsernameEligible.toLocaleDateString()}.
+                </p>
+              )}
+              {!usernameLocked && (
+                <p className="mt-2 text-xs text-gray-400">
+                  3-20 characters, letters/numbers/underscores only. Changing your username again is locked for 30 days after this.
+                </p>
+              )}
+              {usernameMessage && <p className="mt-2 text-xs text-gray-600">{usernameMessage}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+              <p className="text-sm font-medium text-gray-700 mb-2">Change password</p>
+              <form onSubmit={handleChangePassword} className="space-y-2">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Current password"
+                  required
+                  className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                  required
+                  className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                  className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+
+                {passwordMessage && <p className="text-xs text-gray-600">{passwordMessage}</p>}
+
+                <button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="w-full rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                >
+                  {passwordSaving ? "Updating..." : "Update password"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
         <section className="mt-10">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg md:text-2xl font-bold">Your listings</h2>
-            <Link href="/sell" className="text-sm font-semibold text-teal hover:underline">
-              + New listing
-            </Link>
           </div>
 
           {listingsError && (

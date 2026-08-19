@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { getOrdersForUser, acceptOffer, declineOffer, Order } from "@/lib/orders";
+import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, Order } from "@/lib/orders";
 import { getOrCreateChat } from "@/lib/chat";
+import { hasReviewedOrder } from "@/lib/reviews";
+import { getPublicProfile } from "@/lib/profiles";
+import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 
@@ -32,6 +35,12 @@ export default function OffersPage() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState("");
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [reviewedOrderIds, setReviewedOrderIds] = useState<Set<string>>(new Set());
+  const [reviewTarget, setReviewTarget] = useState<{
+    order: Order;
+    revieweeId: string;
+    revieweeName: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -40,7 +49,20 @@ export default function OffersPage() {
   useEffect(() => {
     if (!user) return;
     getOrdersForUser(user.uid)
-      .then(setOrders)
+      .then(async (data) => {
+        setOrders(data);
+
+        // Check review status only for completed orders — no point
+        // querying for anything still pending/accepted.
+        const completed = data.filter((o) => o.status === "completed");
+        const checks = await Promise.all(
+          completed.map(async (o) => {
+            const reviewed = await hasReviewedOrder(o.id, user.uid);
+            return reviewed ? o.id : null;
+          })
+        );
+        setReviewedOrderIds(new Set(checks.filter((id): id is string => id !== null)));
+      })
       .catch((err) => setOrdersError(err.message))
       .finally(() => setOrdersLoading(false));
   }, [user]);
@@ -69,6 +91,18 @@ export default function OffersPage() {
     }
   }
 
+  async function handleComplete(order: Order) {
+    setActingOn(order.id);
+    try {
+      await completeOrder(order.id);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: "completed" } : o))
+      );
+    } finally {
+      setActingOn(null);
+    }
+  }
+
   async function handleOpenChat(order: Order) {
     const chatId = await getOrCreateChat({
       listingId: order.listingId,
@@ -78,6 +112,26 @@ export default function OffersPage() {
       sellerId: order.sellerId,
     });
     router.push(`/chat/${chatId}`);
+  }
+
+  async function handleOpenReview(order: Order) {
+    if (!user) return;
+    const isSeller = order.sellerId === user.uid;
+    const revieweeId = isSeller ? order.buyerId : order.sellerId;
+
+    const profile = await getPublicProfile(revieweeId);
+    setReviewTarget({
+      order,
+      revieweeId,
+      revieweeName: profile?.username || (isSeller ? "the buyer" : "the seller"),
+    });
+  }
+
+  function handleReviewSubmitted() {
+    if (reviewTarget) {
+      setReviewedOrderIds((prev) => new Set(prev).add(reviewTarget.order.id));
+    }
+    setReviewTarget(null);
   }
 
   if (loading || !user) {
@@ -93,6 +147,7 @@ export default function OffersPage() {
 
   function OrderRow({ order }: { order: Order }) {
     const isSeller = order.sellerId === user!.uid;
+    const alreadyReviewed = reviewedOrderIds.has(order.id);
 
     return (
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
@@ -123,7 +178,7 @@ export default function OffersPage() {
           </span>
         </div>
 
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={() => handleOpenChat(order)}
             className="rounded-full border border-gray-300 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
@@ -148,6 +203,31 @@ export default function OffersPage() {
                 Decline
               </button>
             </>
+          )}
+
+          {order.status === "offer_accepted" && (
+            <button
+              onClick={() => handleComplete(order)}
+              disabled={actingOn === order.id}
+              className="rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white hover:bg-black disabled:opacity-60"
+            >
+              {actingOn === order.id ? "Marking..." : "Mark as completed"}
+            </button>
+          )}
+
+          {order.status === "completed" && (
+            alreadyReviewed ? (
+              <span className="rounded-full bg-gray-100 px-4 py-1.5 text-xs font-semibold text-gray-500">
+                Reviewed ✓
+              </span>
+            ) : (
+              <button
+                onClick={() => handleOpenReview(order)}
+                className="rounded-full border border-teal px-4 py-1.5 text-xs font-semibold text-teal hover:bg-teal/5"
+              >
+                Leave a review
+              </button>
+            )
           )}
         </div>
       </div>
@@ -203,6 +283,17 @@ export default function OffersPage() {
           )}
         </section>
       </div>
+
+      {reviewTarget && (
+        <ReviewModal
+          orderId={reviewTarget.order.id}
+          reviewerId={user.uid}
+          revieweeId={reviewTarget.revieweeId}
+          revieweeName={reviewTarget.revieweeName}
+          onClose={() => setReviewTarget(null)}
+          onSubmitted={handleReviewSubmitted}
+        />
+      )}
     </main>
   );
 }
