@@ -14,24 +14,43 @@ export default function SellerPage() {
   const sellerId = params.id as string;
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [allListings, setAllListings] = useState<Listing[]>([]);
   const [stats, setStats] = useState<RatingStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!sellerId) return;
 
-    Promise.all([
-      getPublicProfile(sellerId),
-      getListingsByUser(sellerId),
-      getRatingStats(sellerId),
-    ])
-      .then(([p, l, s]) => {
-        setProfile(p);
-        setListings(l.filter((item) => item.status === "active"));
-        setStats(s);
-      })
-      .finally(() => setLoading(false));
+    async function load() {
+      let p: PublicProfile | null = null;
+      let l: Listing[] = [];
+      let s: RatingStats | null = null;
+
+      try {
+        p = await getPublicProfile(sellerId);
+      } catch (err) {
+        console.error("FAILED: getPublicProfile", err);
+      }
+
+      try {
+        l = await getListingsByUser(sellerId);
+      } catch (err) {
+        console.error("FAILED: getListingsByUser", err);
+      }
+
+      try {
+        s = await getRatingStats(sellerId);
+      } catch (err) {
+        console.error("FAILED: getRatingStats", err);
+      }
+
+      setProfile(p);
+      setAllListings(l);
+      setStats(s);
+      setLoading(false);
+    }
+
+    load();
   }, [sellerId]);
 
   if (loading) {
@@ -42,10 +61,9 @@ export default function SellerPage() {
     );
   }
 
-  // Only a real "not found" if there's neither a profile nor any listings —
-  // an account with listings but no username yet (pre-rules-fix, or a
-  // failed claim) is still a real seller, just without a set username.
-  if (!profile && listings.length === 0) {
+  // Checked against the FULL listing count (before filtering to active-only),
+  // so a real seller whose items are all sold/draft right now still shows up.
+  if (!profile && allListings.length === 0) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-lg font-semibold">Seller not found</p>
@@ -53,6 +71,7 @@ export default function SellerPage() {
     );
   }
 
+  const activeListings = allListings.filter((item) => item.status === "active");
   const displayName = profile?.username || "Bazaaric seller";
   const joinDate = profile?.createdAt?.toDate();
 
@@ -93,11 +112,11 @@ export default function SellerPage() {
             {displayName}'s listings
           </h2>
 
-          {listings.length === 0 ? (
+          {activeListings.length === 0 ? (
             <p className="text-sm text-gray-500">No active listings right now.</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {listings.map((item) => (
+              {activeListings.map((item) => (
                 <ItemCard
                   key={item.id}
                   id={item.id}

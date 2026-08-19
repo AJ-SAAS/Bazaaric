@@ -251,7 +251,6 @@ export default function ItemPage() {
           {/* Image column */}
           <div className="min-w-0">
             <div className="flex gap-3">
-              {/* Vertical thumbnail rail — desktop only */}
               {listing.imageUrls.length > 1 && (
                 <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[500px] overflow-y-auto">
                   {listing.imageUrls.map((url, i) => (
@@ -315,7 +314,6 @@ export default function ItemPage() {
                   )}
                 </div>
 
-                {/* Horizontal thumbnail strip — mobile only */}
                 {listing.imageUrls.length > 1 && (
                   <div className="mt-3 flex gap-2 overflow-x-auto md:hidden">
                     {listing.imageUrls.map((url, i) => (
@@ -335,11 +333,10 @@ export default function ItemPage() {
             </div>
           </div>
 
-          {/* Details column */}
+          {/* Details column — title → seller → price → specs → buttons */}
           <div className="mt-6 md:mt-0 min-w-0">
             <h1 className="text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
 
-            {/* Seller row — username, rating, inline Message button */}
             <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
               <Link href={`/seller/${listing.sellerId}`} className="flex min-w-0 items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
@@ -377,14 +374,8 @@ export default function ItemPage() {
 
             <p className="mt-4 text-2xl md:text-3xl font-bold">€{listing.price}</p>
 
-            {listing.description && (
-              <p className="mt-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-words">
-                {listing.description}
-              </p>
-            )}
-
-            {/* Specs table */}
-            <div className="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
+            {/* Specs table — Condition lives here, right in the fold */}
+            <div className="mt-4 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
               <div className="flex justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-gray-500 shrink-0">Category</span>
                 <span className="font-medium break-words text-right min-w-0">{listing.category}</span>
@@ -486,6 +477,16 @@ export default function ItemPage() {
             )}
           </div>
         </div>
+
+        {/* Description — below the fold, full width */}
+        {listing.description && (
+          <div className="mt-10 border-t border-gray-200 pt-8">
+            <h2 className="text-lg font-semibold">Description</h2>
+            <p className="mt-3 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-words max-w-3xl">
+              {listing.description}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Make an offer modal */}
