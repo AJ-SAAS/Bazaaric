@@ -35,6 +35,7 @@ export type Message = {
   id: string;
   senderId: string;
   text: string;
+  imageUrl?: string;
   createdAt: Timestamp | null;
 };
 
@@ -85,7 +86,12 @@ export async function getOrCreateChat(params: {
   return docRef.id;
 }
 
-export async function sendMessage(chatId: string, senderId: string, text: string) {
+export async function sendMessage(
+  chatId: string,
+  senderId: string,
+  text: string,
+  imageUrl?: string
+) {
   const trimmed = text.trim();
   if (!trimmed) return;
 
@@ -101,6 +107,7 @@ export async function sendMessage(chatId: string, senderId: string, text: string
   await addDoc(collection(db, "chats", chatId, "messages"), {
     senderId,
     text: trimmed,
+    ...(imageUrl ? { imageUrl } : {}),
     createdAt: serverTimestamp(),
   });
 

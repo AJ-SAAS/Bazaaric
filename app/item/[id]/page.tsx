@@ -10,10 +10,12 @@ import { createOffer } from "@/lib/orders";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
 import { reportListing } from "@/lib/moderation";
 import { getPublicProfile, PublicProfile } from "@/lib/profiles";
-import { getRatingStats, RatingStats } from "@/lib/reviews";
+import { getRatingStats, getReviewsForUser, RatingStats, Review } from "@/lib/reviews";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
 import { Heart, ShieldAlert, X, Flag, Star, ChevronRight, MessageCircle } from "lucide-react";
+
+type ReviewWithReviewer = Review & { reviewerName: string };
 
 export default function ItemPage() {
   const params = useParams();
@@ -31,6 +33,7 @@ export default function ItemPage() {
 
   const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
   const [sellerStats, setSellerStats] = useState<RatingStats | null>(null);
+  const [sellerReviews, setSellerReviews] = useState<ReviewWithReviewer[]>([]);
 
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerAmount, setOfferAmount] = useState("");
@@ -49,8 +52,25 @@ export default function ItemPage() {
 
   useEffect(() => {
     if (!listing) return;
+
     getPublicProfile(listing.sellerId).then(setSellerProfile);
     getRatingStats(listing.sellerId).then(setSellerStats);
+
+    getReviewsForUser(listing.sellerId)
+      .then(async (reviews) => {
+        const withNames = await Promise.all(
+          reviews.map(async (review) => {
+            try {
+              const reviewerProfile = await getPublicProfile(review.reviewerId);
+              return { ...review, reviewerName: reviewerProfile?.username || "Bazaaric user" };
+            } catch {
+              return { ...review, reviewerName: "Bazaaric user" };
+            }
+          })
+        );
+        setSellerReviews(withNames);
+      })
+      .catch((err) => console.error("FAILED: getReviewsForUser", err));
   }, [listing]);
 
   useEffect(() => {
@@ -147,7 +167,8 @@ export default function ItemPage() {
       await sendMessage(
         chatId,
         user.uid,
-        `💬 Offered €${amount.toFixed(2)} for "${listing.title}" (listed at €${listing.price.toFixed(2)})`
+        `💬 Offered €${amount.toFixed(2)} for "${listing.title}" (listed at €${listing.price.toFixed(2)})`,
+        listing.imageUrls[0] || undefined
       );
 
       setShowOfferModal(false);
@@ -333,7 +354,7 @@ export default function ItemPage() {
             </div>
           </div>
 
-          {/* Details column — title → seller → price → specs → buttons */}
+          {/* Details column */}
           <div className="mt-6 md:mt-0 min-w-0">
             <h1 className="text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
 
@@ -374,7 +395,7 @@ export default function ItemPage() {
 
             <p className="mt-4 text-2xl md:text-3xl font-bold">€{listing.price}</p>
 
-            {/* Specs table — Condition lives here, right in the fold */}
+            {/* Specs table */}
             <div className="mt-4 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
               <div className="flex justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-gray-500 shrink-0">Category</span>
@@ -487,6 +508,58 @@ export default function ItemPage() {
             </p>
           </div>
         )}
+
+        {/* Seller reviews — same card pattern as the seller's public profile */}
+        <div className="mt-10 border-t border-gray-200 pt-8 pb-4">
+          <h2 className="text-lg font-semibold">
+            Reviews for {sellerDisplayName} {sellerStats && sellerStats.count > 0 ? `(${sellerStats.count})` : ""}
+          </h2>
+
+          {sellerReviews.length === 0 ? (
+            <p className="mt-3 text-sm text-gray-500">No reviews yet.</p>
+          ) : (
+            <div className="mt-4 space-y-3 max-w-3xl">
+              {sellerReviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+                >
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <span className="font-semibold text-sm break-words">{review.reviewerName}</span>
+                    <span className="flex shrink-0 items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star
+                          key={n}
+                          size={14}
+                          className={n <= review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                        />
+                      ))}
+                    </span>
+                  </div>
+
+                  {review.comment && (
+                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap break-words">
+                      {review.comment}
+                    </p>
+                  )}
+
+                  {review.createdAt && (
+                    <p className="mt-2 text-xs text-gray-400">
+                      {review.createdAt.toDate().toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Link
+            href={`/seller/${listing.sellerId}`}
+            className="mt-4 inline-block text-sm font-semibold text-teal hover:underline"
+          >
+            View all of {sellerDisplayName}'s listings →
+          </Link>
+        </div>
       </div>
 
       {/* Make an offer modal */}

@@ -163,13 +163,40 @@ export default function ChatPage() {
           ) : (
             messages.map((msg) => {
               const isMine = msg.senderId === user.uid;
+
+              if (msg.imageUrl) {
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[75%] overflow-hidden rounded-2xl text-sm ${
+                        isMine
+                          ? "bg-teal text-white"
+                          : "bg-white ring-1 ring-black/5 text-gray-900"
+                      }`}
+                    >
+                      <div className="h-32 w-full bg-black/5">
+                        <img
+                          src={msg.imageUrl}
+                          alt="Item"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="px-4 py-2.5 break-words">{msg.text}</div>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={msg.id}
                   className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm break-words ${
                       isMine
                         ? "bg-teal text-white"
                         : "bg-white ring-1 ring-black/5 text-gray-900"
