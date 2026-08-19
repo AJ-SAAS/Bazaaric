@@ -16,6 +16,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { claimUsername, isUsernameAvailable, isValidUsername } from "@/lib/profiles";
 
 type Mode = "login" | "signup" | "reset";
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
 
 export default function AuthForm() {
   const router = useRouter();
@@ -31,9 +32,7 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const [usernameStatus, setUsernameStatus] = useState
-    "idle" | "checking" | "available" | "taken" | "invalid"
-  >("idle");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
 
   useEffect(() => {
     if (mode !== "signup") return;
