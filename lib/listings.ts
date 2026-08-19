@@ -184,10 +184,28 @@ export async function getListings(max = 20): Promise<Listing[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Listing));
 }
 
+// Owner-only view — includes drafts and sold items. Only works when the
+// viewer IS the seller, since the rule falls back to status=="active"
+// for anyone else. Use getActiveListingsByUser for public/seller-page views.
 export async function getListingsByUser(uid: string): Promise<Listing[]> {
   const q = query(
     collection(db, "listings"),
     where("sellerId", "==", uid),
+    orderBy("createdAt", "desc")
+  );
+
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Listing));
+}
+
+// Public-safe version for viewing someone else's listings (e.g. a seller's
+// public profile page). Filters status in the query itself, since the
+// listings rule can't validate an unfiltered query for a non-owner viewer.
+export async function getActiveListingsByUser(uid: string): Promise<Listing[]> {
+  const q = query(
+    collection(db, "listings"),
+    where("sellerId", "==", uid),
+    where("status", "==", "active"),
     orderBy("createdAt", "desc")
   );
 
