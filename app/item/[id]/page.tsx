@@ -481,7 +481,7 @@ export default function ItemPage() {
 
           <div className="min-w-0 md:pt-1">
             {/* Title */}
-            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-gray-950 md:text-[30px] md:leading-[1.15]">
+            <h1 className="break-words text-2xl font-semibold leading-tight tracking-tight text-gray-950 md:text-[30px] md:leading-[1.15]">
               {listing.title}
             </h1>
 
@@ -496,7 +496,7 @@ export default function ItemPage() {
                 </span>
 
                 <span className="min-w-0">
-                  <span className="block font-semibold text-gray-900">
+                  <span className="block break-words font-semibold text-gray-900">
                     {sellerDisplayName}
                   </span>
 
@@ -556,22 +556,14 @@ export default function ItemPage() {
 
             {/* Specifications */}
             <div className="mt-6 border-y border-gray-200">
-              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="shrink-0 text-gray-500">
-                  Category
-                </span>
-
-                <span className="min-w-0 text-right font-medium text-gray-900">
-                  {listing.category}
-                </span>
+              <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="w-28 shrink-0 text-gray-500">Category</span>
+                <span className="min-w-0 break-words font-medium text-gray-900">{listing.category}</span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="shrink-0 text-gray-500">
-                  Condition
-                </span>
-
-                <span className="min-w-0 text-right font-medium text-gray-900">
+              <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="w-28 shrink-0 text-gray-500">Condition</span>
+                <span className="min-w-0 break-words font-medium text-gray-900">
                   {listing.condition === "new"
                     ? "Brand new"
                     : listing.condition === "used"
@@ -580,22 +572,14 @@ export default function ItemPage() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="shrink-0 text-gray-500">
-                  Location
-                </span>
-
-                <span className="min-w-0 text-right font-medium text-gray-900">
-                  {listing.location}
-                </span>
+              <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="w-28 shrink-0 text-gray-500">Location</span>
+                <span className="min-w-0 break-words font-medium text-gray-900">{listing.location}</span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 py-4 text-sm">
-                <span className="shrink-0 text-gray-500">
-                  Available
-                </span>
-
-                <span className="text-right font-medium text-gray-900">
+              <div className="flex items-center gap-4 py-4 text-sm">
+                <span className="w-28 shrink-0 text-gray-500">Available</span>
+                <span className="font-medium text-gray-900">
                   {listing.quantity > 1
                     ? `${listing.quantity} in stock`
                     : "1 available"}
@@ -664,7 +648,7 @@ export default function ItemPage() {
                   className="mt-0.5 shrink-0 text-amber-600"
                 />
 
-                <p className="min-w-0 text-xs leading-relaxed text-gray-600">
+                <p className="min-w-0 break-words text-xs leading-relaxed text-gray-600">
                   Bazaaric does not process payments or verify buyers
                   and sellers. All arrangements — including price,
                   payment, and delivery or pickup — happen directly
