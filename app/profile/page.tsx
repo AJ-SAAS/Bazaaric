@@ -63,19 +63,45 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    Promise.all([
-      getPublicProfile(user.uid),
-      getUserName(user.uid),
-      getUsernameChangeEligibility(user.uid),
-      getRatingStats(user.uid),
-    ]).then(([p, name, eligibility, s]) => {
+    async function loadSettings() {
+      let p: PublicProfile | null = null;
+      let name = "";
+      let eligibility: Date | null = null;
+      let s: RatingStats | null = null;
+
+      try {
+        p = await getPublicProfile(user.uid);
+      } catch (err) {
+        console.error("FAILED: getPublicProfile", err);
+      }
+
+      try {
+        name = await getUserName(user.uid);
+      } catch (err) {
+        console.error("FAILED: getUserName", err);
+      }
+
+      try {
+        eligibility = await getUsernameChangeEligibility(user.uid);
+      } catch (err) {
+        console.error("FAILED: getUsernameChangeEligibility", err);
+      }
+
+      try {
+        s = await getRatingStats(user.uid);
+      } catch (err) {
+        console.error("FAILED: getRatingStats", err);
+      }
+
       setProfile(p);
       setUsernameInput(p?.username || "");
       setNameInput(name);
       setNextUsernameEligible(eligibility);
       setStats(s);
       setSettingsLoading(false);
-    });
+    }
+
+    loadSettings();
   }, [user]);
 
   async function handleMarkAsSold(id: string) {

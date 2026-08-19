@@ -81,14 +81,22 @@ export async function hasReviewedOrder(orderId: string, reviewerId: string): Pro
   return snap.exists();
 }
 
+// Sorted client-side rather than via orderBy() in the query, since
+// combining a where() filter with orderBy() on a different field
+// requires a manually-created Firestore composite index.
 export async function getReviewsForUser(userId: string): Promise<Review[]> {
   const q = query(
     collection(db, "reviews"),
-    where("revieweeId", "==", userId),
-    orderBy("createdAt", "desc")
+    where("revieweeId", "==", userId)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Review));
+  const reviews = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Review));
+
+  return reviews.sort((a, b) => {
+    const at = a.createdAt?.toMillis() ?? 0;
+    const bt = b.createdAt?.toMillis() ?? 0;
+    return bt - at;
+  });
 }
 
 export async function getRatingStats(userId: string): Promise<RatingStats> {
