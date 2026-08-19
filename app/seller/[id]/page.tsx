@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ItemCard from "@/components/listing/ItemCard";
-import ItemCardSkeleton from "@/components/listing/ItemCardSkeleton";
 import { getListingsByUser, Listing } from "@/lib/listings";
 import { getPublicProfile, PublicProfile } from "@/lib/profiles";
 import { getRatingStats, RatingStats } from "@/lib/reviews";
@@ -43,7 +42,10 @@ export default function SellerPage() {
     );
   }
 
-  if (!profile) {
+  // Only a real "not found" if there's neither a profile nor any listings —
+  // an account with listings but no username yet (pre-rules-fix, or a
+  // failed claim) is still a real seller, just without a set username.
+  if (!profile && listings.length === 0) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-lg font-semibold">Seller not found</p>
@@ -51,7 +53,8 @@ export default function SellerPage() {
     );
   }
 
-  const joinDate = profile.createdAt?.toDate();
+  const displayName = profile?.username || "Bazaaric seller";
+  const joinDate = profile?.createdAt?.toDate();
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
@@ -61,7 +64,7 @@ export default function SellerPage() {
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold break-words">{profile.username}</h1>
+              <h1 className="text-xl md:text-2xl font-bold break-words">{displayName}</h1>
 
               {joinDate && (
                 <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
@@ -86,8 +89,8 @@ export default function SellerPage() {
         </div>
 
         <section className="mt-8">
-          <h2 className="mb-4 text-lg md:text-2xl font-bold">
-            {profile.username}'s listings
+          <h2 className="mb-4 text-lg md:text-2xl font-bold break-words">
+            {displayName}'s listings
           </h2>
 
           {listings.length === 0 ? (

@@ -13,7 +13,7 @@ import { getPublicProfile, PublicProfile } from "@/lib/profiles";
 import { getRatingStats, RatingStats } from "@/lib/reviews";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
-import { Heart, ShieldAlert, X, Flag, Star, ChevronRight } from "lucide-react";
+import { Heart, ShieldAlert, X, Flag, Star, ChevronRight, MessageCircle } from "lucide-react";
 
 export default function ItemPage() {
   const params = useParams();
@@ -240,6 +240,7 @@ export default function ItemPage() {
 
   const isOwnListing = user?.uid === listing.sellerId;
   const sellerDisplayName = sellerProfile?.username || "Bazaaric seller";
+  const sellerInitial = sellerDisplayName.charAt(0).toUpperCase();
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12 overflow-x-hidden">
@@ -247,73 +248,134 @@ export default function ItemPage() {
 
       <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
         <div className="grid md:grid-cols-2 gap-8 min-w-0">
+          {/* Image column */}
           <div className="min-w-0">
-            <div
-              className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
-              style={{ touchAction: "pan-y" }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <img
-                src={listing.imageUrls[activeImage]}
-                alt={listing.title}
-                draggable={false}
-                className="h-full w-full object-cover"
-                style={{ opacity: listing.status === "sold" ? 0.5 : 1 }}
-              />
-
-              {listing.status === "sold" && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="rounded-full bg-black/70 px-4 py-1.5 text-sm font-semibold text-white">
-                    SOLD
-                  </span>
-                </div>
-              )}
-
-              {!isOwnListing && (
-                <button
-                  onClick={handleToggleFavorite}
-                  className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 shadow-sm"
-                >
-                  <Heart size={18} className={isFavorited ? "fill-red-500 text-red-500" : ""} />
-                </button>
-              )}
-
+            <div className="flex gap-3">
+              {/* Vertical thumbnail rail — desktop only */}
               {listing.imageUrls.length > 1 && (
-                <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5 md:hidden">
-                  {listing.imageUrls.map((_, i) => (
-                    <span
+                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[500px] overflow-y-auto">
+                  {listing.imageUrls.map((url, i) => (
+                    <button
                       key={i}
-                      className={`h-1.5 rounded-full transition-all ${
-                        activeImage === i ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                      onClick={() => setActiveImage(i)}
+                      className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
+                        activeImage === i ? "ring-teal" : "ring-transparent"
                       }`}
-                    />
+                    >
+                      <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                    </button>
                   ))}
                 </div>
               )}
-            </div>
 
-            {listing.imageUrls.length > 1 && (
-              <div className="mt-3 flex gap-2 overflow-x-auto">
-                {listing.imageUrls.map((url, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImage(i)}
-                    className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
-                      activeImage === i ? "ring-teal" : "ring-transparent"
-                    }`}
-                  >
-                    <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                ))}
+              <div className="flex-1 min-w-0">
+                <div
+                  className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
+                  style={{ touchAction: "pan-y" }}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  <img
+                    src={listing.imageUrls[activeImage]}
+                    alt={listing.title}
+                    draggable={false}
+                    className="h-full w-full object-cover"
+                    style={{ opacity: listing.status === "sold" ? 0.5 : 1 }}
+                  />
+
+                  {listing.status === "sold" && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="rounded-full bg-black/70 px-4 py-1.5 text-sm font-semibold text-white">
+                        SOLD
+                      </span>
+                    </div>
+                  )}
+
+                  {!isOwnListing && (
+                    <button
+                      onClick={handleToggleFavorite}
+                      className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 shadow-sm"
+                    >
+                      <Heart size={18} className={isFavorited ? "fill-red-500 text-red-500" : ""} />
+                    </button>
+                  )}
+
+                  {listing.imageUrls.length > 1 && (
+                    <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5 md:hidden">
+                      {listing.imageUrls.map((_, i) => (
+                        <span
+                          key={i}
+                          className={`h-1.5 rounded-full transition-all ${
+                            activeImage === i ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Horizontal thumbnail strip — mobile only */}
+                {listing.imageUrls.length > 1 && (
+                  <div className="mt-3 flex gap-2 overflow-x-auto md:hidden">
+                    {listing.imageUrls.map((url, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveImage(i)}
+                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
+                          activeImage === i ? "ring-teal" : "ring-transparent"
+                        }`}
+                      >
+                        <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
+          {/* Details column */}
           <div className="mt-6 md:mt-0 min-w-0">
-            <p className="text-2xl md:text-3xl font-bold">€{listing.price}</p>
-            <h1 className="mt-2 text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
+            <h1 className="text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
+
+            {/* Seller row — username, rating, inline Message button */}
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+              <Link href={`/seller/${listing.sellerId}`} className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
+                  {sellerInitial}
+                </span>
+
+                <span className="min-w-0">
+                  <span className="block font-semibold break-words hover:underline">{sellerDisplayName}</span>
+                  {sellerStats && sellerStats.count > 0 ? (
+                    <span className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+                      <Star size={12} className="fill-amber-400 text-amber-400" />
+                      {sellerStats.average.toFixed(1)} · {sellerStats.positivePercent}% positive · Seller's other items
+                      <ChevronRight size={12} />
+                    </span>
+                  ) : (
+                    <span className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
+                      No reviews yet · Seller's other items
+                      <ChevronRight size={12} />
+                    </span>
+                  )}
+                </span>
+              </Link>
+
+              {!isOwnListing && (
+                <button
+                  onClick={handleMessageSeller}
+                  disabled={messaging || listing.status === "sold"}
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <MessageCircle size={14} />
+                  {messaging ? "Opening..." : "Message"}
+                </button>
+              )}
+            </div>
+
+            <p className="mt-4 text-2xl md:text-3xl font-bold">€{listing.price}</p>
 
             {listing.description && (
               <p className="mt-4 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-words">
@@ -345,28 +407,6 @@ export default function ItemPage() {
               </div>
             </div>
 
-            {/* Seller card — username, rating, link to their other listings */}
-            <Link
-              href={`/seller/${listing.sellerId}`}
-              className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition hover:bg-gray-50"
-            >
-              <div className="min-w-0">
-                <p className="text-sm text-gray-500">Seller</p>
-                <p className="mt-1 font-semibold break-words">{sellerDisplayName}</p>
-
-                {sellerStats && sellerStats.count > 0 ? (
-                  <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    {sellerStats.average.toFixed(1)} · {sellerStats.positivePercent}% positive · {sellerStats.count} review{sellerStats.count === 1 ? "" : "s"}
-                  </p>
-                ) : (
-                  <p className="mt-1 text-xs text-gray-400">No reviews yet</p>
-                )}
-              </div>
-
-              <ChevronRight size={18} className="shrink-0 text-gray-400" />
-            </Link>
-
             {isOwnListing ? (
               <div className="mt-6 space-y-2">
                 {listing.status !== "sold" && (
@@ -397,28 +437,16 @@ export default function ItemPage() {
                 </button>
               </div>
             ) : (
-              <div className="mt-6 space-y-2">
-                <button
-                  onClick={handleMessageSeller}
-                  disabled={messaging || listing.status === "sold"}
-                  className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
-                >
-                  {listing.status === "sold"
-                    ? "This item is sold"
-                    : messaging
-                    ? "Starting chat..."
-                    : "Message seller"}
-                </button>
-
-                {listing.status !== "sold" && (
+              listing.status !== "sold" && (
+                <div className="mt-6">
                   <button
                     onClick={openOfferModal}
-                    className="w-full rounded-full border border-teal px-6 py-3.5 text-sm font-semibold text-teal transition hover:bg-teal/5"
+                    className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
                   >
                     Make an offer
                   </button>
-                )}
-              </div>
+                </div>
+              )
             )}
 
             {/* Safety disclaimer */}
