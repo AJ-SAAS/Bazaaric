@@ -3,17 +3,39 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getListing, deleteListing, updateListing, Listing } from "@/lib/listings";
+import {
+  getListing,
+  deleteListing,
+  updateListing,
+  Listing,
+} from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
 import { getOrCreateChat, sendMessage } from "@/lib/chat";
 import { createOffer } from "@/lib/orders";
-import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
+import {
+  addFavorite,
+  removeFavorite,
+  getUserFavoriteIds,
+} from "@/lib/favorites";
 import { reportListing } from "@/lib/moderation";
 import { getPublicProfile, PublicProfile } from "@/lib/profiles";
-import { getRatingStats, getReviewsForUser, RatingStats, Review } from "@/lib/reviews";
+import {
+  getRatingStats,
+  getReviewsForUser,
+  RatingStats,
+  Review,
+} from "@/lib/reviews";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
-import { Heart, ShieldAlert, X, Flag, Star, ChevronRight, MessageCircle } from "lucide-react";
+import {
+  Heart,
+  ShieldAlert,
+  X,
+  Flag,
+  Star,
+  ChevronRight,
+  MessageCircle,
+} from "lucide-react";
 
 type ReviewWithReviewer = Review & { reviewerName: string };
 
@@ -31,7 +53,8 @@ export default function ItemPage() {
   const [isFavorited, setIsFavorited] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  const [sellerProfile, setSellerProfile] = useState<PublicProfile | null>(null);
+  const [sellerProfile, setSellerProfile] =
+    useState<PublicProfile | null>(null);
   const [sellerStats, setSellerStats] = useState<RatingStats | null>(null);
   const [sellerReviews, setSellerReviews] = useState<ReviewWithReviewer[]>([]);
 
@@ -47,7 +70,10 @@ export default function ItemPage() {
 
   useEffect(() => {
     if (!id) return;
-    getListing(id).then(setListing).finally(() => setLoading(false));
+
+    getListing(id)
+      .then(setListing)
+      .finally(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
@@ -61,21 +87,37 @@ export default function ItemPage() {
         const withNames = await Promise.all(
           reviews.map(async (review) => {
             try {
-              const reviewerProfile = await getPublicProfile(review.reviewerId);
-              return { ...review, reviewerName: reviewerProfile?.username || "Bazaaric user" };
+              const reviewerProfile = await getPublicProfile(
+                review.reviewerId
+              );
+
+              return {
+                ...review,
+                reviewerName:
+                  reviewerProfile?.username || "Bazaaric user",
+              };
             } catch {
-              return { ...review, reviewerName: "Bazaaric user" };
+              return {
+                ...review,
+                reviewerName: "Bazaaric user",
+              };
             }
           })
         );
+
         setSellerReviews(withNames);
       })
-      .catch((err) => console.error("FAILED: getReviewsForUser", err));
+      .catch((err) =>
+        console.error("FAILED: getReviewsForUser", err)
+      );
   }, [listing]);
 
   useEffect(() => {
     if (!user || !id) return;
-    getUserFavoriteIds(user.uid).then((ids) => setIsFavorited(ids.has(id)));
+
+    getUserFavoriteIds(user.uid).then((ids) =>
+      setIsFavorited(ids.has(id))
+    );
   }, [user, id]);
 
   async function handleToggleFavorite() {
@@ -83,8 +125,10 @@ export default function ItemPage() {
       router.push(`/auth?redirect=/item/${id}`);
       return;
     }
+
     const next = !isFavorited;
     setIsFavorited(next);
+
     try {
       if (next) {
         await addFavorite(user.uid, id);
@@ -101,9 +145,11 @@ export default function ItemPage() {
       router.push(`/auth?redirect=/item/${id}`);
       return;
     }
+
     if (!listing) return;
 
     setMessaging(true);
+
     try {
       const chatId = await getOrCreateChat({
         listingId: listing.id,
@@ -112,6 +158,7 @@ export default function ItemPage() {
         buyerId: user.uid,
         sellerId: listing.sellerId,
       });
+
       router.push(`/chat/${chatId}`);
     } catch (err: any) {
       alert(err.message);
@@ -125,6 +172,7 @@ export default function ItemPage() {
       router.push(`/auth?redirect=/item/${id}`);
       return;
     }
+
     setOfferError("");
     setOfferAmount("");
     setShowOfferModal(true);
@@ -132,9 +180,11 @@ export default function ItemPage() {
 
   async function handleSubmitOffer(e: React.FormEvent) {
     e.preventDefault();
+
     if (!user || !listing) return;
 
     const amount = parseFloat(offerAmount);
+
     if (!amount || amount <= 0) {
       setOfferError("Enter a valid offer amount.");
       return;
@@ -167,14 +217,20 @@ export default function ItemPage() {
       await sendMessage(
         chatId,
         user.uid,
-        `💬 Offered €${amount.toFixed(2)} for "${listing.title}" (listed at €${listing.price.toFixed(2)})`,
+        `💬 Offered €${amount.toFixed(
+          2
+        )} for "${listing.title}" (listed at €${listing.price.toFixed(
+          2
+        )})`,
         listing.imageUrls[0] || undefined
       );
 
       setShowOfferModal(false);
       router.push(`/chat/${chatId}`);
     } catch (err: any) {
-      setOfferError(err.message || "Couldn't send your offer. Try again.");
+      setOfferError(
+        err.message || "Couldn't send your offer. Try again."
+      );
     } finally {
       setSubmittingOffer(false);
     }
@@ -182,7 +238,9 @@ export default function ItemPage() {
 
   async function handleMarkAsSold() {
     if (!listing) return;
+
     setUpdating(true);
+
     try {
       await updateListing(listing.id, { status: "sold" });
       setListing({ ...listing, status: "sold" });
@@ -193,9 +251,13 @@ export default function ItemPage() {
 
   async function handleDelete() {
     if (!listing) return;
-    if (!confirm("Delete this listing? This can't be undone.")) return;
+
+    if (!confirm("Delete this listing? This can't be undone.")) {
+      return;
+    }
 
     setUpdating(true);
+
     try {
       await deleteListing(listing.id);
       router.push("/profile");
@@ -204,8 +266,12 @@ export default function ItemPage() {
     }
   }
 
-  async function handleReportSubmit(reason: any, details: string) {
+  async function handleReportSubmit(
+    reason: any,
+    details: string
+  ) {
     if (!user || !listing) return;
+
     await reportListing({
       reporterId: user.uid,
       listingId: listing.id,
@@ -222,24 +288,29 @@ export default function ItemPage() {
   }
 
   function handleTouchMove(e: React.TouchEvent) {
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+    touchDeltaX.current =
+      e.touches[0].clientX - touchStartX.current;
   }
 
   function handleTouchEnd() {
     if (!listing) return;
+
     const threshold = 25;
 
     if (touchDeltaX.current > threshold) {
       setActiveImage((prev) => Math.max(prev - 1, 0));
     } else if (touchDeltaX.current < -threshold) {
-      setActiveImage((prev) => Math.min(prev + 1, listing.imageUrls.length - 1));
+      setActiveImage((prev) =>
+        Math.min(prev + 1, listing.imageUrls.length - 1)
+      );
     }
+
     touchDeltaX.current = 0;
   }
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
         <p className="text-sm text-gray-500">Loading...</p>
       </main>
     );
@@ -247,8 +318,9 @@ export default function ItemPage() {
 
   if (!listing) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
+      <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center bg-[#faf9f6]">
         <p className="text-lg font-semibold">Listing not found</p>
+
         <button
           onClick={() => router.push("/")}
           className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
@@ -260,37 +332,57 @@ export default function ItemPage() {
   }
 
   const isOwnListing = user?.uid === listing.sellerId;
-  const sellerDisplayName = sellerProfile?.username || "Bazaaric seller";
-  const sellerInitial = sellerDisplayName.charAt(0).toUpperCase();
+
+  const sellerDisplayName =
+    sellerProfile?.username || "Bazaaric seller";
+
+  const sellerInitial =
+    sellerDisplayName.charAt(0).toUpperCase();
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12 overflow-x-hidden">
+    <main className="min-h-screen overflow-x-hidden bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
 
-      <div className="mx-auto max-w-[1600px] px-4 md:px-10 pt-6 md:pt-10">
-        <div className="grid md:grid-cols-[1.4fr_1fr] gap-8 md:gap-12 min-w-0">
-          {/* Image column */}
+      <div className="mx-auto max-w-[1600px] px-4 pt-6 md:px-8 md:pt-8 lg:px-10">
+        {/* ============================================================
+            FIRST FOLD
+        ============================================================ */}
+
+        <div className="grid min-w-0 gap-8 md:grid-cols-[minmax(0,1.45fr)_minmax(400px,0.95fr)] lg:gap-12 xl:gap-16">
+          {/* ==========================================================
+              IMAGE / GALLERY
+          ========================================================== */}
+
           <div className="min-w-0">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 md:gap-4">
+              {/* Desktop thumbnails */}
               {listing.imageUrls.length > 1 && (
-                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[560px] overflow-y-auto">
+                <div className="hidden w-[72px] shrink-0 flex-col gap-3 md:flex">
                   {listing.imageUrls.map((url, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 bg-gray-100 ${
-                        activeImage === i ? "ring-teal" : "ring-transparent"
+                      aria-label={`View image ${i + 1}`}
+                      className={`h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl bg-[#f3f3f3] transition ${
+                        activeImage === i
+                          ? "border-2 border-gray-900"
+                          : "border-2 border-transparent hover:border-gray-300"
                       }`}
                     >
-                      <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-contain" />
+                      <img
+                        src={url}
+                        alt={`Thumbnail ${i + 1}`}
+                        className="h-full w-full object-contain"
+                      />
                     </button>
                   ))}
                 </div>
               )}
 
-              <div className="min-w-0 max-w-[560px] w-full">
+              {/* Main image */}
+              <div className="min-w-0 flex-1">
                 <div
-                  className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-100 select-none"
+                  className="relative h-[480px] w-full overflow-hidden rounded-2xl bg-[#f1f1f1] select-none sm:h-[540px] md:h-[580px] lg:h-[620px] xl:h-[650px]"
                   style={{ touchAction: "pan-y" }}
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
@@ -300,34 +392,55 @@ export default function ItemPage() {
                     src={listing.imageUrls[activeImage]}
                     alt={listing.title}
                     draggable={false}
-                    className="h-full w-full object-contain p-6"
-                    style={{ opacity: listing.status === "sold" ? 0.5 : 1 }}
+                    className="h-full w-full object-contain p-4 sm:p-6"
+                    style={{
+                      opacity:
+                        listing.status === "sold" ? 0.5 : 1,
+                    }}
                   />
 
+                  {/* Sold overlay */}
                   {listing.status === "sold" && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="rounded-full bg-black/70 px-4 py-1.5 text-sm font-semibold text-white">
+                      <span className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white">
                         SOLD
                       </span>
                     </div>
                   )}
 
+                  {/* Favorite */}
                   {!isOwnListing && (
                     <button
                       onClick={handleToggleFavorite}
-                      className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 shadow-sm"
+                      aria-label={
+                        isFavorited
+                          ? "Remove from favorites"
+                          : "Add to favorites"
+                      }
+                      className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm transition hover:scale-105"
                     >
-                      <Heart size={18} className={isFavorited ? "fill-red-500 text-red-500" : ""} />
+                      <Heart
+                        size={20}
+                        strokeWidth={1.8}
+                        className={
+                          isFavorited
+                            ? "fill-red-500 text-red-500"
+                            : "text-gray-800"
+                        }
+                      />
                     </button>
                   )}
 
+                  {/* Mobile image indicators */}
                   {listing.imageUrls.length > 1 && (
-                    <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5 md:hidden">
+                    <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5 md:hidden">
                       {listing.imageUrls.map((_, i) => (
                         <span
                           key={i}
                           className={`h-1.5 rounded-full transition-all ${
-                            activeImage === i ? "w-4 bg-white" : "w-1.5 bg-white/60"
+                            activeImage === i
+                              ? "w-5 bg-gray-900"
+                              : "w-1.5 bg-gray-900/30"
                           }`}
                         />
                       ))}
@@ -335,17 +448,25 @@ export default function ItemPage() {
                   )}
                 </div>
 
+                {/* Mobile thumbnails */}
                 {listing.imageUrls.length > 1 && (
-                  <div className="mt-3 flex gap-2 overflow-x-auto md:hidden">
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
                     {listing.imageUrls.map((url, i) => (
                       <button
                         key={i}
                         onClick={() => setActiveImage(i)}
-                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 bg-gray-100 ${
-                          activeImage === i ? "ring-teal" : "ring-transparent"
+                        aria-label={`View image ${i + 1}`}
+                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f1f1f1] ${
+                          activeImage === i
+                            ? "border-2 border-gray-900"
+                            : "border-2 border-transparent"
                         }`}
                       >
-                        <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-contain" />
+                        <img
+                          src={url}
+                          alt={`Thumbnail ${i + 1}`}
+                          className="h-full w-full object-contain"
+                        />
                       </button>
                     ))}
                   </div>
@@ -354,27 +475,59 @@ export default function ItemPage() {
             </div>
           </div>
 
-          {/* Details column */}
-          <div className="mt-6 md:mt-0 min-w-0">
-            <h1 className="text-xl md:text-2xl font-semibold break-words">{listing.title}</h1>
+          {/* ==========================================================
+              DETAILS
+          ========================================================== */}
 
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-              <Link href={`/seller/${listing.sellerId}`} className="flex min-w-0 items-center gap-3">
+          <div className="min-w-0 md:pt-1">
+            {/* Title */}
+            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-gray-950 md:text-[30px] md:leading-[1.15]">
+              {listing.title}
+            </h1>
+
+            {/* Seller */}
+            <div className="mt-5 flex items-center justify-between gap-4 border-b border-gray-200 pb-5">
+              <Link
+                href={`/seller/${listing.sellerId}`}
+                className="flex min-w-0 items-center gap-3"
+              >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
                   {sellerInitial}
                 </span>
 
                 <span className="min-w-0">
-                  <span className="block font-semibold break-words hover:underline">{sellerDisplayName}</span>
+                  <span className="block font-semibold text-gray-900">
+                    {sellerDisplayName}
+                  </span>
+
                   {sellerStats && sellerStats.count > 0 ? (
-                    <span className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
-                      <Star size={12} className="fill-amber-400 text-amber-400" />
-                      {sellerStats.average.toFixed(1)} · {sellerStats.positivePercent}% positive · Seller's other items
+                    <span className="mt-1 flex flex-wrap items-center gap-1 text-xs text-gray-500">
+                      <Star
+                        size={12}
+                        className="fill-amber-400 text-amber-400"
+                      />
+
+                      <span>
+                        {sellerStats.average.toFixed(1)}
+                      </span>
+
+                      <span>·</span>
+
+                      <span>
+                        {sellerStats.positivePercent}% positive
+                      </span>
+
+                      <span>·</span>
+
+                      <span>Seller's other items</span>
+
                       <ChevronRight size={12} />
                     </span>
                   ) : (
-                    <span className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
-                      No reviews yet · Seller's other items
+                    <span className="mt-1 flex items-center gap-1 text-xs text-gray-400">
+                      No reviews yet
+                      <span>·</span>
+                      Seller's other items
                       <ChevronRight size={12} />
                     </span>
                   )}
@@ -384,48 +537,85 @@ export default function ItemPage() {
               {!isOwnListing && (
                 <button
                   onClick={handleMessageSeller}
-                  disabled={messaging || listing.status === "sold"}
+                  disabled={
+                    messaging || listing.status === "sold"
+                  }
                   className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
                   <MessageCircle size={14} />
+
                   {messaging ? "Opening..." : "Message"}
                 </button>
               )}
             </div>
 
-            <p className="mt-4 text-2xl md:text-3xl font-bold">€{listing.price}</p>
+            {/* Price */}
+            <p className="mt-6 text-3xl font-bold tracking-tight text-gray-950">
+              €{listing.price}
+            </p>
 
-            {/* Specs table */}
-            <div className="mt-4 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
-              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 shrink-0">Category</span>
-                <span className="font-medium break-words text-right min-w-0">{listing.category}</span>
-              </div>
-              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 shrink-0">Condition</span>
-                <span className="font-medium break-words text-right min-w-0">
-                  {listing.condition === "new" ? "Brand new" : listing.condition === "used" ? "Used" : "Not specified"}
+            {/* Specifications */}
+            <div className="mt-6 border-y border-gray-200">
+              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="shrink-0 text-gray-500">
+                  Category
+                </span>
+
+                <span className="min-w-0 text-right font-medium text-gray-900">
+                  {listing.category}
                 </span>
               </div>
-              <div className="flex justify-between gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 shrink-0">Location</span>
-                <span className="font-medium break-words text-right min-w-0">{listing.location}</span>
+
+              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="shrink-0 text-gray-500">
+                  Condition
+                </span>
+
+                <span className="min-w-0 text-right font-medium text-gray-900">
+                  {listing.condition === "new"
+                    ? "Brand new"
+                    : listing.condition === "used"
+                      ? "Used"
+                      : "Not specified"}
+                </span>
               </div>
-              <div className="flex justify-between px-4 py-3 text-sm">
-                <span className="text-gray-500">Available</span>
-                <span className="font-medium">
-                  {listing.quantity > 1 ? `${listing.quantity} in stock` : "1 available"}
+
+              <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-4 text-sm">
+                <span className="shrink-0 text-gray-500">
+                  Location
+                </span>
+
+                <span className="min-w-0 text-right font-medium text-gray-900">
+                  {listing.location}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 py-4 text-sm">
+                <span className="shrink-0 text-gray-500">
+                  Available
+                </span>
+
+                <span className="text-right font-medium text-gray-900">
+                  {listing.quantity > 1
+                    ? `${listing.quantity} in stock`
+                    : "1 available"}
                 </span>
               </div>
             </div>
+
+            {/* ========================================================
+                ACTIONS
+            ======================================================== */}
 
             {isOwnListing ? (
               <div className="mt-6 space-y-2">
                 {listing.status !== "sold" && (
                   <>
                     <button
-                      onClick={() => router.push(`/sell?edit=${listing.id}`)}
-                      className="w-full rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                      onClick={() =>
+                        router.push(`/sell?edit=${listing.id}`)
+                      }
+                      className="w-full rounded-full border border-gray-300 px-6 py-3.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                     >
                       Edit listing
                     </button>
@@ -433,9 +623,11 @@ export default function ItemPage() {
                     <button
                       onClick={handleMarkAsSold}
                       disabled={updating}
-                      className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                      className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
                     >
-                      Mark as sold
+                      {updating
+                        ? "Updating..."
+                        : "Mark as sold"}
                     </button>
                   </>
                 )}
@@ -443,7 +635,7 @@ export default function ItemPage() {
                 <button
                   onClick={handleDelete}
                   disabled={updating}
-                  className="w-full rounded-full border border-red-300 px-6 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+                  className="w-full rounded-full border border-red-300 px-6 py-3.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
                 >
                   Delete listing
                 </button>
@@ -461,19 +653,31 @@ export default function ItemPage() {
               )
             )}
 
-            {/* Safety disclaimer */}
+            {/* ========================================================
+                SAFETY WARNING
+            ======================================================== */}
+
             {!isOwnListing && (
-              <div className="mt-6 flex gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
-                <ShieldAlert size={18} className="shrink-0 text-amber-600 mt-0.5" />
-                <p className="text-xs leading-relaxed text-amber-800 min-w-0 break-words">
-                  Bazaaric does not process payments or verify buyers and
-                  sellers. All arrangements — including price, payment, and
-                  delivery or pickup — happen directly between you and the
-                  other party, entirely outside the platform. Meet in a safe,
-                  public location, inspect items before paying, and never
-                  send money before confirming what you're receiving. See
-                  our{" "}
-                  <a href="/terms" className="underline font-medium" target="_blank">
+              <div className="mt-6 flex gap-3 border-t border-amber-200 pt-5">
+                <ShieldAlert
+                  size={17}
+                  className="mt-0.5 shrink-0 text-amber-600"
+                />
+
+                <p className="min-w-0 text-xs leading-relaxed text-gray-600">
+                  Bazaaric does not process payments or verify buyers
+                  and sellers. All arrangements — including price,
+                  payment, and delivery or pickup — happen directly
+                  between you and the other party, entirely outside
+                  the platform. Meet in a safe, public location,
+                  inspect items before paying, and never send money
+                  before confirming what you're receiving. See our{" "}
+                  <a
+                    href="/terms"
+                    className="font-medium underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Terms of Service
                   </a>{" "}
                   for full details.
@@ -481,6 +685,7 @@ export default function ItemPage() {
               </div>
             )}
 
+            {/* Report */}
             {!isOwnListing && (
               <button
                 onClick={() => {
@@ -488,9 +693,10 @@ export default function ItemPage() {
                     router.push(`/auth?redirect=/item/${id}`);
                     return;
                   }
+
                   setShowReportModal(true);
                 }}
-                className="mt-3 flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600"
+                className="mt-4 flex items-center gap-1.5 text-xs text-gray-500 transition hover:text-red-600"
               >
                 <Flag size={13} />
                 Report this listing
@@ -499,53 +705,76 @@ export default function ItemPage() {
           </div>
         </div>
 
-        {/* Description — below the fold, full width */}
+        {/* ============================================================
+            BELOW THE FOLD — DESCRIPTION
+        ============================================================ */}
+
         {listing.description && (
-          <div className="mt-10 border-t border-gray-200 pt-8">
-            <h2 className="text-lg font-semibold">Description</h2>
-            <p className="mt-3 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-words max-w-3xl">
+          <div className="mt-12 border-t border-gray-200 pt-8">
+            <h2 className="text-lg font-semibold text-gray-950">
+              Description
+            </h2>
+
+            <p className="mt-3 max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
               {listing.description}
             </p>
           </div>
         )}
 
-        {/* Seller reviews — same card pattern as the seller's public profile */}
-        <div className="mt-10 border-t border-gray-200 pt-8 pb-4">
-          <h2 className="text-lg font-semibold">
-            Reviews for {sellerDisplayName} {sellerStats && sellerStats.count > 0 ? `(${sellerStats.count})` : ""}
+        {/* ============================================================
+            BELOW THE FOLD — SELLER REVIEWS
+        ============================================================ */}
+
+        <div className="mt-10 border-t border-gray-200 pb-4 pt-8">
+          <h2 className="text-lg font-semibold text-gray-950">
+            Reviews for {sellerDisplayName}{" "}
+            {sellerStats && sellerStats.count > 0
+              ? `(${sellerStats.count})`
+              : ""}
           </h2>
 
           {sellerReviews.length === 0 ? (
-            <p className="mt-3 text-sm text-gray-500">No reviews yet.</p>
+            <p className="mt-3 text-sm text-gray-500">
+              No reviews yet.
+            </p>
           ) : (
-            <div className="mt-4 space-y-3 max-w-3xl">
+            <div className="mt-4 max-w-3xl space-y-3">
               {sellerReviews.map((review) => (
                 <div
                   key={review.id}
                   className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5"
                 >
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <span className="font-semibold text-sm break-words">{review.reviewerName}</span>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="break-words text-sm font-semibold">
+                      {review.reviewerName}
+                    </span>
+
                     <span className="flex shrink-0 items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
                         <Star
                           key={n}
                           size={14}
-                          className={n <= review.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                          className={
+                            n <= review.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-gray-300"
+                          }
                         />
                       ))}
                     </span>
                   </div>
 
                   {review.comment && (
-                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap break-words">
+                    <p className="mt-2 whitespace-pre-wrap break-words text-sm text-gray-700">
                       {review.comment}
                     </p>
                   )}
 
                   {review.createdAt && (
                     <p className="mt-2 text-xs text-gray-400">
-                      {review.createdAt.toDate().toLocaleDateString()}
+                      {review.createdAt
+                        .toDate()
+                        .toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -562,48 +791,79 @@ export default function ItemPage() {
         </div>
       </div>
 
-      {/* Make an offer modal */}
+      {/* ==============================================================
+          MAKE AN OFFER MODAL
+      ============================================================== */}
+
       {showOfferModal && (
-        <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Make an offer</h3>
-              <button onClick={() => setShowOfferModal(false)}>
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 px-4 md:items-center">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">
+                Make an offer
+              </h3>
+
+              <button
+                onClick={() => setShowOfferModal(false)}
+                aria-label="Close"
+                className="rounded-full p-1 transition hover:bg-gray-100"
+              >
                 <X size={20} className="text-gray-500" />
               </button>
             </div>
 
-            <p className="text-sm text-gray-500 mb-4">
-              Listed at <span className="font-semibold">€{listing.price}</span>
+            <p className="mb-4 text-sm text-gray-500">
+              Listed at{" "}
+              <span className="font-semibold text-gray-900">
+                €{listing.price}
+              </span>
             </p>
 
-            <form onSubmit={handleSubmitOffer} className="space-y-3">
+            <form
+              onSubmit={handleSubmitOffer}
+              className="space-y-3"
+            >
               <div className="flex items-center gap-1 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-black/10">
-                <span className="text-sm text-gray-500">€</span>
+                <span className="text-sm text-gray-500">
+                  €
+                </span>
+
                 <input
                   type="number"
                   step="0.01"
                   value={offerAmount}
-                  onChange={(e) => setOfferAmount(e.target.value)}
+                  onChange={(e) =>
+                    setOfferAmount(e.target.value)
+                  }
                   placeholder="0.00"
                   autoFocus
-                  className="w-full bg-transparent text-base md:text-sm outline-none placeholder:text-gray-400"
+                  className="w-full bg-transparent text-base outline-none placeholder:text-gray-400 md:text-sm"
                 />
               </div>
 
-              {offerError && <p className="text-sm text-red-600">{offerError}</p>}
+              {offerError && (
+                <p className="text-sm text-red-600">
+                  {offerError}
+                </p>
+              )}
 
               <button
                 type="submit"
                 disabled={submittingOffer}
                 className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
               >
-                {submittingOffer ? "Sending..." : "Send offer"}
+                {submittingOffer
+                  ? "Sending..."
+                  : "Send offer"}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* ==============================================================
+          REPORT MODAL
+      ============================================================== */}
 
       {showReportModal && (
         <ReportModal
