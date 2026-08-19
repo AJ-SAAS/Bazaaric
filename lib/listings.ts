@@ -46,23 +46,91 @@ type CreateListingInput = {
   sellerId: string;
   sellerEmail: string;
   status?: "active" | "draft";
+  onUploadProgress?: (completed: number, total: number) => void;
 };
+
+// Resizes an image to a max dimension and re-encodes it as a compressed JPEG,
+// entirely in the browser via canvas — no server round-trip, no user action needed.
+function compressImage(file: File, maxDimension = 1600, quality = 0.8): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Canvas not supported on this device."));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(objectUrl);
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Image compression failed."));
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Couldn't read that image file."));
+    };
+
+    img.src = objectUrl;
+  });
+}
 
 export async function uploadPhotos(
   sellerId: string,
-  photos: File[]
+  photos: File[],
+  onProgress?: (completed: number, total: number) => void
 ): Promise<string[]> {
-  const urls: string[] = [];
+  const total = photos.length;
+  let completed = 0;
 
-  for (const photo of photos) {
-    const path = `listings/${sellerId}/${Date.now()}-${photo.name}`;
+  async function uploadOne(photo: File): Promise<string> {
+    const compressed = await compressImage(photo);
+
+    const path = `listings/${sellerId}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
     const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, photo);
+
+    await uploadBytes(storageRef, compressed, { contentType: "image/jpeg" });
     const url = await getDownloadURL(storageRef);
-    urls.push(url);
+
+    completed++;
+    onProgress?.(completed, total);
+
+    return url;
   }
 
-  return urls;
+  // All photos compress + upload in parallel instead of one at a time —
+  // this is the main fix for multi-minute upload times.
+  return Promise.all(photos.map(uploadOne));
 }
 
 // Best-effort deletion — a photo already gone or a permissions hiccup
@@ -83,10 +151,10 @@ export async function deletePhotosByUrl(urls: string[]) {
 export async function createListing(input: CreateListingInput) {
   const {
     title, description, category, condition, price, location, quantity,
-    photos, sellerId, sellerEmail, status = "active",
+    photos, sellerId, sellerEmail, status = "active", onUploadProgress,
   } = input;
 
-  const imageUrls = await uploadPhotos(sellerId, photos);
+  const imageUrls = await uploadPhotos(sellerId, photos, onUploadProgress);
 
   const docRef = await addDoc(collection(db, "listings"), {
     title, description, category, condition, price, location, quantity, imageUrls,

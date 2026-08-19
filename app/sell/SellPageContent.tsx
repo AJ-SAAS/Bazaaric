@@ -12,6 +12,7 @@ const conditions: { value: Condition; label: string }[] = [
   { value: "new", label: "Brand new" },
   { value: "used", label: "Used" },
 ];
+const MAX_PHOTOS = 8;
 
 type NewPhoto = { file: File; url: string };
 
@@ -35,6 +36,7 @@ export default function SellPageContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loadingListing, setLoadingListing] = useState(isEditMode);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
 
   useEffect(() => {
     if (!editId) return;
@@ -65,7 +67,7 @@ export default function SellPageContent() {
       file,
       url: URL.createObjectURL(file),
     }));
-    setNewPhotos((prev) => [...prev, ...added].slice(0, 8 - existingImages.length));
+    setNewPhotos((prev) => [...prev, ...added].slice(0, MAX_PHOTOS - existingImages.length));
   }
 
   function removeExistingImage(index: number) {
@@ -76,6 +78,14 @@ export default function SellPageContent() {
 
   function removeNewPhoto(index: number) {
     setNewPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleCancel() {
+    if (isEditMode && editId) {
+      router.push(`/item/${editId}`);
+    } else {
+      router.push("/");
+    }
   }
 
   async function handleSubmit(status: "active" | "draft") {
@@ -95,10 +105,15 @@ export default function SellPageContent() {
     }
 
     setSubmitting(true);
+    setUploadProgress(newPhotos.length ? { done: 0, total: newPhotos.length } : null);
 
     try {
       const uploadedUrls = newPhotos.length
-        ? await uploadPhotos(user.uid, newPhotos.map((p) => p.file))
+        ? await uploadPhotos(
+            user.uid,
+            newPhotos.map((p) => p.file),
+            (done, total) => setUploadProgress({ done, total })
+          )
         : [];
 
       const finalImageUrls = [...existingImages, ...uploadedUrls];
@@ -141,6 +156,7 @@ export default function SellPageContent() {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+      setUploadProgress(null);
     }
   }
 
@@ -168,15 +184,36 @@ export default function SellPageContent() {
 
   const totalPhotos = existingImages.length + newPhotos.length;
 
+  const submitLabel = submitting
+    ? uploadProgress
+      ? `Uploading ${uploadProgress.done}/${uploadProgress.total}...`
+      : "Saving..."
+    : isEditMode
+    ? "Save changes"
+    : "Upload";
+
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          {isEditMode ? "Edit item" : "Sell an item"}
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+            {isEditMode ? "Edit item" : "Sell an item"}
+          </h1>
+
+          <button
+            onClick={handleCancel}
+            disabled={submitting}
+            className="text-sm font-medium text-gray-500 transition hover:text-gray-800 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
 
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">Photos</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">Photos</h2>
+            <span className="text-xs text-gray-400">{totalPhotos}/{MAX_PHOTOS}</span>
+          </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
               {existingImages.map((url, i) => (
@@ -184,7 +221,8 @@ export default function SellPageContent() {
                   <img src={url} alt={`Existing ${i + 1}`} className="h-full w-full object-cover" />
                   <button
                     onClick={() => removeExistingImage(i)}
-                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                    disabled={submitting}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white disabled:opacity-50"
                   >
                     <X size={14} />
                   </button>
@@ -196,21 +234,30 @@ export default function SellPageContent() {
                   <img src={photo.url} alt={`New ${i + 1}`} className="h-full w-full object-cover" />
                   <button
                     onClick={() => removeNewPhoto(i)}
-                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                    disabled={submitting}
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white disabled:opacity-50"
                   >
                     <X size={14} />
                   </button>
                 </div>
               ))}
 
-              {totalPhotos < 8 && (
+              {totalPhotos < MAX_PHOTOS && (
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-teal hover:text-teal">
                   <Plus size={22} />
                   <span className="text-xs font-medium">Add photo</span>
-                  <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    disabled={submitting}
+                    className="hidden"
+                  />
                 </label>
               )}
             </div>
+            <p className="mt-3 text-xs text-gray-400">Up to {MAX_PHOTOS} photos. Just pick straight from your camera roll — we handle the rest.</p>
           </div>
         </section>
 
@@ -334,7 +381,7 @@ export default function SellPageContent() {
             disabled={submitting}
             className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
           >
-            {submitting ? "Saving..." : isEditMode ? "Save changes" : "Upload"}
+            {submitLabel}
           </button>
         </div>
       </div>
