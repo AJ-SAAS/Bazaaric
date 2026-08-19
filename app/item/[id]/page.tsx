@@ -271,26 +271,26 @@ export default function ItemPage() {
         <div className="grid md:grid-cols-[1.4fr_1fr] gap-8 md:gap-12 min-w-0">
           {/* Image column */}
           <div className="min-w-0">
-            <div className="flex gap-3">
+            <div className="flex items-start gap-3">
               {listing.imageUrls.length > 1 && (
-                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[600px] overflow-y-auto">
+                <div className="hidden md:flex md:flex-col gap-2 w-16 shrink-0 max-h-[560px] overflow-y-auto">
                   {listing.imageUrls.map((url, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
+                      className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 bg-gray-100 ${
                         activeImage === i ? "ring-teal" : "ring-transparent"
                       }`}
                     >
-                      <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                      <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-contain" />
                     </button>
                   ))}
                 </div>
               )}
 
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 max-w-[560px] w-full">
                 <div
-                  className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 select-none"
+                  className="relative aspect-square w-full overflow-hidden rounded-2xl bg-gray-100 select-none"
                   style={{ touchAction: "pan-y" }}
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
@@ -300,7 +300,7 @@ export default function ItemPage() {
                     src={listing.imageUrls[activeImage]}
                     alt={listing.title}
                     draggable={false}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain p-6"
                     style={{ opacity: listing.status === "sold" ? 0.5 : 1 }}
                   />
 
@@ -341,11 +341,11 @@ export default function ItemPage() {
                       <button
                         key={i}
                         onClick={() => setActiveImage(i)}
-                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ${
+                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 bg-gray-100 ${
                           activeImage === i ? "ring-teal" : "ring-transparent"
                         }`}
                       >
-                        <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-cover" />
+                        <img src={url} alt={`Thumbnail ${i + 1}`} className="h-full w-full object-contain" />
                       </button>
                     ))}
                   </div>
