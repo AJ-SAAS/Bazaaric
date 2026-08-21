@@ -627,6 +627,23 @@ export default function ItemPage() {
 
             {isOwnListing ? (
               <div className="mt-6 space-y-2">
+                {!sellerCanReceivePayments && listing.status !== "sold" && (
+                  <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
+                    <p className="text-sm font-semibold text-amber-800">
+                      Buyers can't use Buy Now on this listing yet
+                    </p>
+                    <p className="mt-1 text-xs text-amber-700">
+                      Set up payouts so buyers can purchase instantly, and so you can accept offers and get paid.
+                    </p>
+                    <Link
+                      href="/profile"
+                      className="mt-3 inline-block rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-700"
+                    >
+                      Set up payouts
+                    </Link>
+                  </div>
+                )}
+
                 {listing.status !== "sold" && (
                   <>
                     <button

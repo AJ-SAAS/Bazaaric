@@ -67,6 +67,20 @@ export default function OffersPage() {
   }, [user]);
 
   async function handleAccept(order: Order) {
+    if (!user) return;
+
+    const profile = await getPublicProfile(user.uid);
+    if (!profile?.stripeChargesEnabled) {
+      if (
+        confirm(
+          "You need to set up payouts before accepting offers, so you can actually get paid. Set up payouts now?"
+        )
+      ) {
+        router.push("/profile");
+      }
+      return;
+    }
+
     setActingOn(order.id);
     try {
       await acceptOffer(order.id);
