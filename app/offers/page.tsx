@@ -53,8 +53,6 @@ export default function OffersPage() {
       .then(async (data) => {
         setOrders(data);
 
-        // Check review status only for completed orders — no point
-        // querying for anything still pending/accepted.
         const completed = data.filter((o) => o.status === "completed");
         const checks = await Promise.all(
           completed.map(async (o) => {
@@ -158,6 +156,11 @@ export default function OffersPage() {
   const buying = orders.filter((o) => o.buyerId === user.uid);
   const selling = orders.filter((o) => o.sellerId === user.uid);
 
+  const purchasesMade = buying.filter((o) => o.isDirect);
+  const offersMade = buying.filter((o) => !o.isDirect);
+  const salesReceived = selling.filter((o) => o.isDirect);
+  const offersReceived = selling.filter((o) => !o.isDirect);
+
   function OrderRow({ order }: { order: Order }) {
     const isSeller = order.sellerId === user!.uid;
     const alreadyReviewed = reviewedOrderIds.has(order.id);
@@ -178,10 +181,16 @@ export default function OffersPage() {
 
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold truncate">{order.listingTitle}</p>
-            <p className="text-xs text-gray-500">
-              Offered <span className="font-semibold">€{order.offerAmount}</span>{" "}
-              <span className="line-through">€{order.originalPrice}</span>
-            </p>
+            {order.isDirect ? (
+              <p className="text-xs text-gray-500">
+                <span className="font-semibold">€{order.offerAmount}</span>
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500">
+                Offered <span className="font-semibold">€{order.offerAmount}</span>{" "}
+                <span className="line-through">€{order.originalPrice}</span>
+              </p>
+            )}
           </div>
 
           <span
@@ -199,7 +208,7 @@ export default function OffersPage() {
             Open chat
           </button>
 
-          {isSeller && order.status === "offer_pending" && (
+          {isSeller && !order.isDirect && order.status === "offer_pending" && (
             <>
               <button
                 onClick={() => handleAccept(order)}
@@ -228,7 +237,7 @@ export default function OffersPage() {
             </button>
           )}
 
-          {order.status === "offer_accepted" && (
+          {order.status === "offer_accepted" && order.paymentStatus !== "paid" && (
             <button
               onClick={() => handleComplete(order)}
               disabled={actingOn === order.id}
@@ -257,6 +266,28 @@ export default function OffersPage() {
     );
   }
 
+  function OrderSection({ title, items }: { title: string; items: Order[] }) {
+    return (
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+          {title}
+        </h2>
+
+        {ordersLoading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-gray-500">Nothing here yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {items.map((o) => (
+              <OrderRow key={o.id} order={o} />
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
@@ -270,41 +301,10 @@ export default function OffersPage() {
           </p>
         )}
 
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-            Offers you've made
-          </h2>
-
-          {ordersLoading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
-          ) : buying.length === 0 ? (
-            <p className="text-sm text-gray-500">No offers made yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {buying.map((o) => (
-                <OrderRow key={o.id} order={o} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-10">
-          <h2 className="mb-3 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-            Offers you've received
-          </h2>
-
-          {ordersLoading ? (
-            <p className="text-sm text-gray-500">Loading...</p>
-          ) : selling.length === 0 ? (
-            <p className="text-sm text-gray-500">No offers received yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {selling.map((o) => (
-                <OrderRow key={o.id} order={o} />
-              ))}
-            </div>
-          )}
-        </section>
+        <OrderSection title="Your purchases" items={purchasesMade} />
+        <OrderSection title="Offers you've made" items={offersMade} />
+        <OrderSection title="Your sales" items={salesReceived} />
+        <OrderSection title="Offers you've received" items={offersReceived} />
       </div>
 
       {reviewTarget && (

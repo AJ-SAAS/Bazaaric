@@ -33,6 +33,7 @@ export type Order = {
   sellerEmail: string;
   status: OrderStatus;
   paymentStatus: "not_applicable" | "unpaid" | "paid" | "refunded";
+  isDirect: boolean; // true = Buy Now purchase, false/undefined = negotiated offer
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
 };
@@ -54,6 +55,7 @@ export async function createOffer(input: CreateOfferInput): Promise<string> {
     ...input,
     status: "offer_pending" as OrderStatus,
     paymentStatus: "not_applicable",
+    isDirect: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -68,6 +70,7 @@ export async function createDirectOrder(input: CreateOfferInput): Promise<string
     offerAmount: input.originalPrice, // full price, no negotiation
     status: "offer_accepted" as OrderStatus,
     paymentStatus: "unpaid",
+    isDirect: true,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
