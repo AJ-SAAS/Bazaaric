@@ -14,6 +14,7 @@ export type PublicProfile = {
   username: string;
   usernameChangedAt: Timestamp | null;
   createdAt: Timestamp | null;
+  stripeChargesEnabled?: boolean;
 };
 
 const USERNAME_COOLDOWN_DAYS = 30;

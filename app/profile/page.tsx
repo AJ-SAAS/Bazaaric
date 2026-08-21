@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth-context";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getListingsByUser, deleteListing, updateListing, Listing } from "@/lib/listings";
 import {
@@ -16,13 +16,15 @@ import {
 } from "@/lib/profiles";
 import { updateDisplayName, getUserName, changeUserPassword } from "@/lib/account";
 import { getRatingStats, RatingStats } from "@/lib/reviews";
+import { startStripeOnboarding, refreshStripeStatus } from "@/lib/payments";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { Plus, Star } from "lucide-react";
+import { Plus, Star, CreditCard, CheckCircle2 } from "lucide-react";
 
-export default function ProfilePage() {
+export default function ProfilePageContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -47,6 +49,12 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
+
+  // Payouts (Stripe Connect) state
+  const [payoutsEnabled, setPayoutsEnabled] = useState(false);
+  const [startingOnboarding, setStartingOnboarding] = useState(false);
+  const [checkingPayouts, setCheckingPayouts] = useState(false);
+  const [payoutsMessage, setPayoutsMessage] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -98,11 +106,38 @@ export default function ProfilePage() {
       setNameInput(name);
       setNextUsernameEligible(eligibility);
       setStats(s);
+      setPayoutsEnabled(!!p?.stripeChargesEnabled);
       setSettingsLoading(false);
     }
 
     loadSettings();
   }, [user]);
+
+  // If we just landed back from Stripe's onboarding flow, re-check status
+  // immediately rather than waiting for the webhook to arrive.
+  useEffect(() => {
+    if (!user) return;
+    const stripeParam = searchParams.get("stripe");
+    if (stripeParam !== "return" && stripeParam !== "refresh") return;
+
+    setCheckingPayouts(true);
+    refreshStripeStatus()
+      .then((result) => {
+        setPayoutsEnabled(result.chargesEnabled);
+        if (result.chargesEnabled) {
+          setPayoutsMessage("Payouts are set up! You can now receive money from sales.");
+        } else if (result.detailsSubmitted) {
+          setPayoutsMessage("Stripe is reviewing your details. This can take a few minutes.");
+        } else {
+          setPayoutsMessage("Onboarding wasn't finished. You can try again below.");
+        }
+      })
+      .catch((err) => {
+        console.error("FAILED: refreshStripeStatus", err);
+        setPayoutsMessage("Couldn't check your payout status. Try refreshing the page.");
+      })
+      .finally(() => setCheckingPayouts(false));
+  }, [user, searchParams]);
 
   async function handleMarkAsSold(id: string) {
     await updateListing(id, { status: "sold" });
@@ -190,6 +225,18 @@ export default function ProfilePage() {
       );
     } finally {
       setPasswordSaving(false);
+    }
+  }
+
+  async function handleSetupPayouts() {
+    setStartingOnboarding(true);
+    setPayoutsMessage("");
+    try {
+      const url = await startStripeOnboarding();
+      window.location.href = url;
+    } catch (err: any) {
+      setPayoutsMessage(err.message || "Couldn't start payout setup. Try again.");
+      setStartingOnboarding(false);
     }
   }
 
@@ -313,6 +360,51 @@ export default function ProfilePage() {
             View favorites →
           </Link>
         </div>
+
+        {/* Payouts (Stripe Connect) */}
+        <section className="mt-10">
+          <h2 className="mb-4 text-lg md:text-2xl font-bold">Payouts</h2>
+
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+            {payoutsEnabled ? (
+              <div className="flex items-center gap-3">
+                <CheckCircle2 size={22} className="shrink-0 text-teal" />
+                <div>
+                  <p className="text-sm font-semibold">Payouts are set up</p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    You're ready to receive money from sales directly to your bank account.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <CreditCard size={22} className="mt-0.5 shrink-0 text-gray-400" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">Set up payouts to get paid</p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    Connect a bank account through Stripe so you can receive money when your items sell. Takes a couple of minutes.
+                  </p>
+
+                  <button
+                    onClick={handleSetupPayouts}
+                    disabled={startingOnboarding || checkingPayouts}
+                    className="mt-3 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                  >
+                    {startingOnboarding
+                      ? "Redirecting to Stripe..."
+                      : checkingPayouts
+                      ? "Checking status..."
+                      : "Set up payouts"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {payoutsMessage && (
+              <p className="mt-3 text-xs text-gray-600">{payoutsMessage}</p>
+            )}
+          </div>
+        </section>
 
         {/* Account settings */}
         <section className="mt-10">
