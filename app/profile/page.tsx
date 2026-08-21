@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ProfilePageContent from "./ProfilePageContent.tsx";
+import ProfilePageContent from "./ProfilePageContent";
 
 export default function ProfilePage() {
   return (
