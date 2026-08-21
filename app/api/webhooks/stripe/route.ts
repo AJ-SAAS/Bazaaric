@@ -3,11 +3,29 @@ import { stripe } from "@/lib/stripe";
 import { adminDb } from "@/lib/firebase-admin";
 import Stripe from "stripe";
 
+function verifyWithEitherSecret(rawBody: string, signature: string): Stripe.Event {
+  const secrets = [
+    process.env.STRIPE_WEBHOOK_SECRET,
+    process.env.STRIPE_WEBHOOK_SECRET_CHECKOUT,
+  ].filter((s): s is string => !!s);
+
+  let lastError: unknown;
+
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError;
+}
+
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature");
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!signature || !webhookSecret) {
+  if (!signature) {
     return NextResponse.json({ error: "Missing signature." }, { status: 400 });
   }
 
@@ -16,7 +34,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    event = verifyWithEitherSecret(rawBody, signature);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return NextResponse.json({ error: "Invalid signature." }, { status: 400 });
