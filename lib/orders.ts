@@ -60,6 +60,20 @@ export async function createOffer(input: CreateOfferInput): Promise<string> {
   return docRef.id;
 }
 
+// Buyer clicks "Buy now" instead of negotiating — skips straight to
+// offer_accepted at full price, so the buyer can pay immediately.
+export async function createDirectOrder(input: CreateOfferInput): Promise<string> {
+  const docRef = await addDoc(collection(db, "orders"), {
+    ...input,
+    offerAmount: input.originalPrice, // full price, no negotiation
+    status: "offer_accepted" as OrderStatus,
+    paymentStatus: "unpaid",
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+  return docRef.id;
+}
+
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   await updateDoc(doc(db, "orders", orderId), {
     status,

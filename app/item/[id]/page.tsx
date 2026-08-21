@@ -11,7 +11,8 @@ import {
 } from "@/lib/listings";
 import { useAuth } from "@/lib/auth-context";
 import { getOrCreateChat, sendMessage } from "@/lib/chat";
-import { createOffer } from "@/lib/orders";
+import { createOffer, createDirectOrder } from "@/lib/orders";
+import { createCheckoutSession } from "@/lib/payments";
 import {
   addFavorite,
   removeFavorite,
@@ -52,6 +53,7 @@ export default function ItemPage() {
   const [messaging, setMessaging] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
 
   const [sellerProfile, setSellerProfile] =
     useState<PublicProfile | null>(null);
@@ -236,6 +238,36 @@ export default function ItemPage() {
     }
   }
 
+  async function handleBuyNow() {
+    if (!user) {
+      router.push(`/auth?redirect=/item/${id}`);
+      return;
+    }
+    if (!listing) return;
+
+    setBuyingNow(true);
+
+    try {
+      const orderId = await createDirectOrder({
+        listingId: listing.id,
+        listingTitle: listing.title,
+        listingImage: listing.imageUrls[0] || "",
+        originalPrice: listing.price,
+        offerAmount: listing.price,
+        buyerId: user.uid,
+        buyerEmail: user.email || "",
+        sellerId: listing.sellerId,
+        sellerEmail: listing.sellerEmail,
+      });
+
+      const url = await createCheckoutSession(orderId);
+      window.location.href = url;
+    } catch (err: any) {
+      alert(err.message || "Couldn't start checkout. Try again.");
+      setBuyingNow(false);
+    }
+  }
+
   async function handleMarkAsSold() {
     if (!listing) return;
 
@@ -338,6 +370,8 @@ export default function ItemPage() {
 
   const sellerInitial =
     sellerDisplayName.charAt(0).toUpperCase();
+
+  const sellerCanReceivePayments = !!sellerProfile?.stripeChargesEnabled;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#faf9f6] pb-28 md:pb-12">
@@ -626,10 +660,24 @@ export default function ItemPage() {
               </div>
             ) : (
               listing.status !== "sold" && (
-                <div className="mt-6">
+                <div className="mt-6 space-y-2">
+                  {sellerCanReceivePayments && (
+                    <button
+                      onClick={handleBuyNow}
+                      disabled={buyingNow}
+                      className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
+                    >
+                      {buyingNow ? "Redirecting to checkout..." : "Buy now"}
+                    </button>
+                  )}
+
                   <button
                     onClick={openOfferModal}
-                    className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
+                    className={
+                      sellerCanReceivePayments
+                        ? "w-full rounded-full border border-teal px-6 py-3.5 text-sm font-semibold text-teal transition hover:bg-teal/5"
+                        : "w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
+                    }
                   >
                     Make an offer
                   </button>
