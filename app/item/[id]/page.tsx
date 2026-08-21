@@ -196,7 +196,7 @@ export default function ItemPage() {
     setOfferError("");
 
     try {
-      await createOffer({
+      const orderId = await createOffer({
         listingId: listing.id,
         listingTitle: listing.title,
         listingImage: listing.imageUrls[0] || "",
@@ -224,7 +224,8 @@ export default function ItemPage() {
         )} for "${listing.title}" (listed at €${listing.price.toFixed(
           2
         )})`,
-        listing.imageUrls[0] || undefined
+        listing.imageUrls[0] || undefined,
+        orderId
       );
 
       setShowOfferModal(false);

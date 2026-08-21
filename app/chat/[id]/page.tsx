@@ -5,9 +5,28 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { listenToMessages, sendMessage, getChat, markChatAsRead, Chat, Message } from "@/lib/chat";
 import { blockUser, reportUser } from "@/lib/moderation";
+import { getOrder, acceptOffer, declineOffer, Order } from "@/lib/orders";
+import { getPublicProfile } from "@/lib/profiles";
+import { createCheckoutSession } from "@/lib/payments";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
-import { Send, MoreVertical, ShieldOff, Flag } from "lucide-react";
+import { Send, MoreVertical, ShieldOff, Flag, Check, X as XIcon } from "lucide-react";
+
+const orderStatusStyles: Record<Order["status"], string> = {
+  offer_pending: "bg-amber-100 text-amber-700",
+  offer_accepted: "bg-green-100 text-green-700",
+  offer_declined: "bg-red-100 text-red-700",
+  completed: "bg-gray-100 text-gray-700",
+  cancelled: "bg-red-100 text-red-700",
+};
+
+const orderStatusLabels: Record<Order["status"], string> = {
+  offer_pending: "Pending",
+  offer_accepted: "Accepted",
+  offer_declined: "Declined",
+  completed: "Paid",
+  cancelled: "Cancelled",
+};
 
 export default function ChatPage() {
   const params = useParams();
@@ -25,6 +44,10 @@ export default function ChatPage() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [blocking, setBlocking] = useState(false);
 
+  // Live order data keyed by orderId, for any offer messages in this chat
+  const [ordersById, setOrdersById] = useState<Record<string, Order>>({});
+  const [actingOnOrder, setActingOnOrder] = useState<string | null>(null);
+
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
   }, [user, loading, router]);
@@ -39,6 +62,23 @@ export default function ChatPage() {
     const unsubscribe = listenToMessages(chatId, setMessages);
     return () => unsubscribe();
   }, [chatId]);
+
+  // Whenever the message list changes, fetch/refresh the live order data
+  // for any offer messages present, so status stays accurate.
+  useEffect(() => {
+    const orderIds = Array.from(
+      new Set(messages.map((m) => m.orderId).filter((id): id is string => !!id))
+    );
+    if (orderIds.length === 0) return;
+
+    Promise.all(orderIds.map((id) => getOrder(id))).then((results) => {
+      const map: Record<string, Order> = {};
+      results.forEach((order) => {
+        if (order) map[order.id] = order;
+      });
+      setOrdersById((prev) => ({ ...prev, ...map }));
+    });
+  }, [messages]);
 
   useEffect(() => {
     if (!chatId || !user) return;
@@ -93,6 +133,58 @@ export default function ChatPage() {
       setText("");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function refreshOrder(orderId: string) {
+    const order = await getOrder(orderId);
+    if (order) {
+      setOrdersById((prev) => ({ ...prev, [orderId]: order }));
+    }
+  }
+
+  async function handleAcceptOffer(order: Order) {
+    if (!user) return;
+
+    const profile = await getPublicProfile(user.uid);
+    if (!profile?.stripeChargesEnabled) {
+      if (
+        confirm(
+          "You need to set up payouts before accepting offers, so you can actually get paid. Set up payouts now?"
+        )
+      ) {
+        router.push("/profile");
+      }
+      return;
+    }
+
+    setActingOnOrder(order.id);
+    try {
+      await acceptOffer(order.id);
+      await refreshOrder(order.id);
+    } finally {
+      setActingOnOrder(null);
+    }
+  }
+
+  async function handleDeclineOffer(order: Order) {
+    setActingOnOrder(order.id);
+    try {
+      await declineOffer(order.id);
+      await refreshOrder(order.id);
+    } finally {
+      setActingOnOrder(null);
+    }
+  }
+
+  async function handlePayNow(order: Order) {
+    setActingOnOrder(order.id);
+    try {
+      const url = await createCheckoutSession(order.id);
+      window.location.href = url;
+    } catch (err: any) {
+      alert(err.message || "Couldn't start checkout. Try again.");
+      setActingOnOrder(null);
     }
   }
 
@@ -163,7 +255,80 @@ export default function ChatPage() {
           ) : (
             messages.map((msg) => {
               const isMine = msg.senderId === user.uid;
+              const order = msg.orderId ? ordersById[msg.orderId] : undefined;
 
+              // Offer message with live order data — render as an interactive card
+              if (msg.orderId && order && chat) {
+                const isSeller = chat.sellerId === user.uid;
+                const isBuyer = chat.buyerId === user.uid;
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <div className="max-w-[85%] w-full rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+                      {msg.imageUrl && (
+                        <div className="mb-3 h-28 w-full overflow-hidden rounded-xl bg-black/5">
+                          <img src={msg.imageUrl} alt="Item" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold text-gray-900">
+                          Offer: €{order.offerAmount.toFixed(2)}
+                        </p>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${orderStatusStyles[order.status]}`}
+                        >
+                          {orderStatusLabels[order.status]}
+                        </span>
+                      </div>
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        Listed at €{order.originalPrice.toFixed(2)}
+                      </p>
+
+                      {isSeller && order.status === "offer_pending" && (
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={() => handleAcceptOffer(order)}
+                            disabled={actingOnOrder === order.id}
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
+                          >
+                            <Check size={13} />
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleDeclineOffer(order)}
+                            disabled={actingOnOrder === order.id}
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-red-300 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+                          >
+                            <XIcon size={13} />
+                            Decline
+                          </button>
+                        </div>
+                      )}
+
+                      {isBuyer && order.status === "offer_accepted" && order.paymentStatus !== "paid" && (
+                        <button
+                          onClick={() => handlePayNow(order)}
+                          disabled={actingOnOrder === order.id}
+                          className="mt-3 w-full rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
+                        >
+                          {actingOnOrder === order.id ? "Redirecting..." : "Pay now"}
+                        </button>
+                      )}
+
+                      {order.paymentStatus === "paid" && (
+                        <p className="mt-3 text-xs font-medium text-teal">Payment received ✓</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+
+              // Image message with no linked order (fallback, shouldn't normally happen)
               if (msg.imageUrl) {
                 return (
                   <div
@@ -190,6 +355,7 @@ export default function ChatPage() {
                 );
               }
 
+              // Plain text message
               return (
                 <div
                   key={msg.id}

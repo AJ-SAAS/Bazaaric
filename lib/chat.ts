@@ -36,6 +36,7 @@ export type Message = {
   senderId: string;
   text: string;
   imageUrl?: string;
+  orderId?: string;
   createdAt: Timestamp | null;
 };
 
@@ -90,7 +91,8 @@ export async function sendMessage(
   chatId: string,
   senderId: string,
   text: string,
-  imageUrl?: string
+  imageUrl?: string,
+  orderId?: string
 ) {
   const trimmed = text.trim();
   if (!trimmed) return;
@@ -108,6 +110,7 @@ export async function sendMessage(
     senderId,
     text: trimmed,
     ...(imageUrl ? { imageUrl } : {}),
+    ...(orderId ? { orderId } : {}),
     createdAt: serverTimestamp(),
   });
 
