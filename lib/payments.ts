@@ -39,3 +39,11 @@ export async function refreshStripeStatus(): Promise<{
     method: "POST",
   });
 }
+
+export async function createCheckoutSession(orderId: string): Promise<string> {
+  const data = await authedFetch("/api/stripe/checkout/create-session", {
+    method: "POST",
+    body: JSON.stringify({ orderId }),
+  });
+  return data.url as string;
+}

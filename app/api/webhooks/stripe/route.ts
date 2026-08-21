@@ -49,6 +49,45 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderId = session.metadata?.orderId;
+
+        if (!orderId) {
+          console.error("checkout.session.completed missing orderId in metadata");
+          break;
+        }
+
+        const orderRef = adminDb.collection("orders").doc(orderId);
+        const orderSnap = await orderRef.get();
+
+        if (!orderSnap.exists) {
+          console.error("checkout.session.completed: order not found", orderId);
+          break;
+        }
+
+        const order = orderSnap.data()!;
+
+        await orderRef.set(
+          {
+            status: "completed",
+            paymentStatus: "paid",
+            stripeCheckoutSessionId: session.id,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        );
+
+        if (order.listingId) {
+          await adminDb.collection("listings").doc(order.listingId).set(
+            { status: "sold" },
+            { merge: true }
+          );
+        }
+
+        break;
+      }
+
       default:
         break;
     }

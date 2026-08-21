@@ -7,6 +7,7 @@ import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, Order } fro
 import { getOrCreateChat } from "@/lib/chat";
 import { hasReviewedOrder } from "@/lib/reviews";
 import { getPublicProfile } from "@/lib/profiles";
+import { createCheckoutSession } from "@/lib/payments";
 import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -98,6 +99,18 @@ export default function OffersPage() {
       setOrders((prev) =>
         prev.map((o) => (o.id === order.id ? { ...o, status: "completed" } : o))
       );
+    } finally {
+      setActingOn(null);
+    }
+  }
+
+  async function handlePayNow(order: Order) {
+    setActingOn(order.id);
+    try {
+      const url = await createCheckoutSession(order.id);
+      window.location.href = url;
+    } catch (err: any) {
+      alert(err.message || "Couldn't start checkout. Try again.");
     } finally {
       setActingOn(null);
     }
@@ -203,6 +216,16 @@ export default function OffersPage() {
                 Decline
               </button>
             </>
+          )}
+
+          {!isSeller && order.status === "offer_accepted" && order.paymentStatus !== "paid" && (
+            <button
+              onClick={() => handlePayNow(order)}
+              disabled={actingOn === order.id}
+              className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
+            >
+              {actingOn === order.id ? "Redirecting..." : "Pay now"}
+            </button>
           )}
 
           {order.status === "offer_accepted" && (
