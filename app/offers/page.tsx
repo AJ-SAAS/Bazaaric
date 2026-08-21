@@ -7,7 +7,7 @@ import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, Order } fro
 import { getOrCreateChat } from "@/lib/chat";
 import { hasReviewedOrder } from "@/lib/reviews";
 import { getPublicProfile } from "@/lib/profiles";
-import { createCheckoutSession } from "@/lib/payments";
+import { createCheckoutSession, requestRefund } from "@/lib/payments";
 import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -17,7 +17,7 @@ const statusStyles: Record<Order["status"], string> = {
   offer_accepted: "bg-green-100 text-green-700",
   offer_declined: "bg-red-100 text-red-700",
   completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-gray-100 text-gray-500",
+  cancelled: "bg-red-100 text-red-700",
 };
 
 const statusLabels: Record<Order["status"], string> = {
@@ -128,6 +128,32 @@ export default function OffersPage() {
     }
   }
 
+  async function handleCancelAndRefund(order: Order) {
+    if (
+      !confirm(
+        "Cancel this order and issue a full refund? The item will be listed as available again."
+      )
+    ) {
+      return;
+    }
+
+    setActingOn(order.id);
+    try {
+      await requestRefund(order.id);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id
+            ? { ...o, status: "cancelled", paymentStatus: "refunded" }
+            : o
+        )
+      );
+    } catch (err: any) {
+      alert(err.message || "Couldn't process the refund. Try again.");
+    } finally {
+      setActingOn(null);
+    }
+  }
+
   async function handleOpenChat(order: Order) {
     const chatId = await getOrCreateChat({
       listingId: order.listingId,
@@ -178,6 +204,7 @@ export default function OffersPage() {
   function OrderRow({ order }: { order: Order }) {
     const isSeller = order.sellerId === user!.uid;
     const alreadyReviewed = reviewedOrderIds.has(order.id);
+    const canRefund = order.paymentStatus === "paid";
 
     return (
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
@@ -258,6 +285,16 @@ export default function OffersPage() {
               className="rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white hover:bg-black disabled:opacity-60"
             >
               {actingOn === order.id ? "Marking..." : "Mark as completed"}
+            </button>
+          )}
+
+          {canRefund && (
+            <button
+              onClick={() => handleCancelAndRefund(order)}
+              disabled={actingOn === order.id}
+              className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
+            >
+              {actingOn === order.id ? "Processing..." : "Cancel & refund"}
             </button>
           )}
 

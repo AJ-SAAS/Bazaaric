@@ -47,3 +47,10 @@ export async function createCheckoutSession(orderId: string): Promise<string> {
   });
   return data.url as string;
 }
+
+export async function requestRefund(orderId: string): Promise<void> {
+  await authedFetch("/api/stripe/refund", {
+    method: "POST",
+    body: JSON.stringify({ orderId }),
+  });
+}
