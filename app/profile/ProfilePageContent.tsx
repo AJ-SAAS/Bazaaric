@@ -55,6 +55,7 @@ export default function ProfilePageContent() {
   const [startingOnboarding, setStartingOnboarding] = useState(false);
   const [checkingPayouts, setCheckingPayouts] = useState(false);
   const [payoutsMessage, setPayoutsMessage] = useState("");
+  const [sellerCountry, setSellerCountry] = useState("LV");
 
   useEffect(() => {
     if (!loading && !user) router.push("/auth");
@@ -232,7 +233,7 @@ export default function ProfilePageContent() {
     setStartingOnboarding(true);
     setPayoutsMessage("");
     try {
-      const url = await startStripeOnboarding();
+      const url = await startStripeOnboarding(sellerCountry);
       window.location.href = url;
     } catch (err: any) {
       setPayoutsMessage(err.message || "Couldn't start payout setup. Try again.");
@@ -385,17 +386,34 @@ export default function ProfilePageContent() {
                     Connect a bank account through Stripe so you can receive money when your items sell. Takes a couple of minutes.
                   </p>
 
-                  <button
-                    onClick={handleSetupPayouts}
-                    disabled={startingOnboarding || checkingPayouts}
-                    className="mt-3 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
-                  >
-                    {startingOnboarding
-                      ? "Redirecting to Stripe..."
-                      : checkingPayouts
-                      ? "Checking status..."
-                      : "Set up payouts"}
-                  </button>
+                  <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                    <select
+                      value={sellerCountry}
+                      onChange={(e) => setSellerCountry(e.target.value)}
+                      disabled={startingOnboarding || checkingPayouts}
+                      className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal disabled:opacity-60"
+                    >
+                      <option value="LV">Latvia</option>
+                      <option value="EE">Estonia</option>
+                      <option value="LT">Lithuania</option>
+                    </select>
+
+                    <button
+                      onClick={handleSetupPayouts}
+                      disabled={startingOnboarding || checkingPayouts}
+                      className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+                    >
+                      {startingOnboarding
+                        ? "Redirecting to Stripe..."
+                        : checkingPayouts
+                        ? "Checking status..."
+                        : "Set up payouts"}
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-xs text-gray-400">
+                    Choose the country where you're based. This can't be changed once you start.
+                  </p>
                 </div>
               </div>
             )}

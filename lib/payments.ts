@@ -23,9 +23,10 @@ async function authedFetch(path: string, options: RequestInit = {}) {
   return res.json();
 }
 
-export async function startStripeOnboarding(): Promise<string> {
+export async function startStripeOnboarding(country: string): Promise<string> {
   const data = await authedFetch("/api/stripe/connect/create-account", {
     method: "POST",
+    body: JSON.stringify({ country }),
   });
   return data.url as string;
 }
