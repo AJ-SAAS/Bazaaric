@@ -704,7 +704,7 @@ export default function ItemPage() {
             )}
 
             {/* ========================================================
-                SAFETY WARNING
+                PAYMENT & SAFETY NOTICE
             ======================================================== */}
 
             {!isOwnListing && (
@@ -715,13 +715,18 @@ export default function ItemPage() {
                 />
 
                 <p className="min-w-0 break-words text-xs leading-relaxed text-gray-600">
-                  Bazaaric does not process payments or verify buyers
-                  and sellers. All arrangements — including price,
-                  payment, and delivery or pickup — happen directly
-                  between you and the other party, entirely outside
-                  the platform. Meet in a safe, public location,
-                  inspect items before paying, and never send money
-                  before confirming what you're receiving. See our{" "}
+                  Payments on Bazaaric are processed securely through
+                  Stripe. A buyer protection fee (shown at checkout)
+                  applies to every purchase. Bazaaric does not verify the
+                  identity or condition claims of individual sellers —
+                  inspect items carefully before confirming receipt, and
+                  use the in-app chat to ask questions before buying. If
+                  something goes wrong with a paid order, you can request
+                  a refund directly from your{" "}
+                  <a href="/offers" className="font-medium underline">
+                    Offers page
+                  </a>{" "}
+                  or contact support. See our{" "}
                   <a
                     href="/terms"
                     className="font-medium underline"
@@ -729,6 +734,15 @@ export default function ItemPage() {
                     rel="noopener noreferrer"
                   >
                     Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/refunds"
+                    className="font-medium underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Refund Policy
                   </a>{" "}
                   for full details.
                 </p>

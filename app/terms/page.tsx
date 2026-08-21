@@ -13,7 +13,7 @@ export default function TermsPage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Terms of Service
         </h1>
-        <p className="mt-2 text-sm text-gray-500">Last updated: August 9, 2026</p>
+        <p className="mt-2 text-sm text-gray-500">Last updated: August 22, 2026</p>
 
         <div className="mt-8 space-y-8 text-sm leading-relaxed text-gray-700">
           <section>
@@ -25,9 +25,9 @@ export default function TermsPage() {
               Bazaaric LTD, a company registered in England and Wales, with a
               registered address at London, UK. You can contact us at
               hello@bazaaric.com. Bazaaric provides an online platform ("the
-              Platform") that allows users to list, browse, and communicate
-              about items for sale, primarily within Lithuania, Latvia, and
-              Estonia.
+              Platform") that allows users to list, browse, communicate
+              about, and pay for items for sale, primarily within Lithuania,
+              Latvia, and Estonia.
             </p>
           </section>
 
@@ -37,10 +37,11 @@ export default function TermsPage() {
             </h2>
             <p>
               By creating an account or using the Platform in any way, you
-              agree to be bound by these Terms of Service and our Privacy
-              Policy. If you do not agree, you must not use the Platform.
-              You must be at least 18 years old, or the age of legal majority
-              in your jurisdiction, to create an account.
+              agree to be bound by these Terms of Service, our Privacy
+              Policy, and our Refund Policy. If you do not agree, you must
+              not use the Platform. You must be at least 18 years old, or the
+              age of legal majority in your jurisdiction, to create an
+              account.
             </p>
           </section>
 
@@ -50,20 +51,26 @@ export default function TermsPage() {
             </h2>
             <p>
               Bazaaric is a platform that connects buyers and sellers. We are{" "}
-              <strong>not a party to any transaction, sale, or agreement</strong>{" "}
-              that takes place between users. We do not own, inspect, handle,
-              ship, or take title to any item listed on the Platform.
+              <strong>not a party to any sale or agreement</strong> between
+              users, and we do not own, inspect, or take title to any item
+              listed on the Platform.
             </p>
             <p className="mt-2">
-              <strong>Currently, Bazaaric does not process payments and does
-              not arrange or provide delivery or shipping services.</strong>{" "}
-              Any exchange of money, arrangement of delivery or collection,
-              and the item itself is negotiated and completed directly and
-              independently between buyer and seller, entirely outside the
-              Platform. You do this at your own risk and discretion. We may
-              introduce in-app payments and/or delivery integration in the
-              future, at which point these Terms will be updated accordingly
-              and you will be notified before such features apply to you.
+              Where a seller has completed payout registration, Bazaaric
+              enables buyers to pay for an item directly through the
+              Platform, using Stripe, Inc. and its affiliates
+              ("Stripe") as our third-party payment processor. When you use
+              in-app payment, Bazaaric facilitates that payment as a limited
+              payment collection agent on the seller's behalf; Bazaaric is
+              not the seller, does not take ownership of the item, and is not
+              a bank or financial institution.
+            </p>
+            <p className="mt-2">
+              Users may also arrange to complete a transaction independently,
+              outside the Platform's payment system (for example, meeting in
+              person and exchanging cash) — see Section 6 below. Delivery and
+              shipping arrangements are not currently provided by Bazaaric
+              and remain the responsibility of the buyer and seller.
             </p>
           </section>
 
@@ -104,20 +111,82 @@ export default function TermsPage() {
               6. Transactions between users
             </h2>
             <p>
-              Because Bazaaric does not process payments, verify items, or
-              arrange delivery, all aspects of a transaction — including
-              price negotiation, payment method, meeting arrangements or
-              shipping, item inspection, and dispute resolution — are the
-              sole responsibility of the buyer and seller involved.{" "}
+              All aspects of a transaction not covered by Bazaaric's in-app
+              payment system — including item inspection, meeting
+              arrangements, shipping, and any transaction completed by
+              agreement outside the Platform's payment flow — remain the sole
+              responsibility of the buyer and seller involved.{" "}
               <strong>
                 We strongly recommend meeting in safe, public locations for
-                in-person exchanges, inspecting items before paying, and never
-                sharing sensitive financial information through the
-                Platform's messaging feature.
+                in-person exchanges, inspecting items before confirming
+                receipt, and never sharing sensitive financial information
+                through the Platform's messaging feature.
               </strong>{" "}
-              We are not responsible for the quality, safety, legality, or
-              delivery of any item, or for any dispute, loss, or harm arising
-              from a transaction between users.
+              Bazaaric is not responsible for the quality, safety, legality,
+              or delivery of any item.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-gray-900 mb-2">
+              6a. Payments
+            </h2>
+            <p>
+              Where a buyer chooses to pay in-app, payment is processed by
+              Stripe. Card and payment details are entered directly into
+              Stripe's secure checkout and are not stored on Bazaaric's own
+              servers. In-app purchases include a buyer protection fee, shown
+              at checkout before you confirm payment, which is retained by
+              Bazaaric.
+            </p>
+            <p className="mt-2">
+              To receive in-app payments, sellers must complete Stripe's
+              account registration and identity verification process
+              ("Connect onboarding"). Sellers are responsible for the
+              accuracy of the information they provide to Stripe and for
+              complying with any tax reporting obligations arising from their
+              sales. Bazaaric is not responsible for delays, holds, or
+              account restrictions imposed by Stripe under Stripe's own terms
+              and risk policies.
+            </p>
+            <p className="mt-2">
+              Your use of Stripe's payment services is additionally governed
+              by the{" "}
+              <a
+                href="https://stripe.com/legal/connect-account"
+                className="font-medium underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Stripe Connected Account Agreement
+              </a>
+              , which incorporates the{" "}
+              <a
+                href="https://stripe.com/legal/ssa"
+                className="font-medium underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Stripe Services Agreement
+              </a>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-semibold text-gray-900 mb-2">
+              6b. Refunds and cancellations
+            </h2>
+            <p>
+              Refunds and order cancellations for in-app payments are handled
+              as described in our{" "}
+              <a href="/refunds" className="font-medium underline">
+                Refund Policy
+              </a>
+              , which forms part of these Terms. Transactions completed
+              outside the Platform's payment system are not covered by our
+              Refund Policy and must be resolved directly between the buyer
+              and seller.
             </p>
           </section>
 
@@ -175,13 +244,15 @@ export default function TermsPage() {
               special, consequential, or punitive damages, or any loss of
               profits, data, or goodwill, arising from your use of the
               Platform or any transaction between users — including but not
-              limited to non-delivery of an item, item misrepresentation,
-              payment disputes, or any interaction between users, whether
-              conducted on or off the Platform. Where liability cannot be
-              excluded under applicable law, our total liability is limited
-              to the greater of [€50] or the amount you paid us in the 12
-              months preceding the claim (noting that, as we do not currently
-              charge fees, this amount is presently €0).
+              limited to non-delivery of an item, item misrepresentation, or
+              any interaction between users, whether conducted on or off the
+              Platform. This limitation does not affect our obligations
+              relating to payments actually processed through the Platform,
+              which are handled as described in our Refund Policy. Where
+              liability cannot otherwise be excluded under applicable law,
+              our total liability is limited to the greater of €50 or the
+              total buyer protection fees you paid us in the 12 months
+              preceding the claim.
             </p>
           </section>
 
