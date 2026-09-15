@@ -44,7 +44,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
 
   return (
     <>
-      {/* Mobile top header — logo, search, menu */}
+      {/* Mobile top header — logo, search + button, menu */}
       <nav
         className="
           sticky
@@ -72,17 +72,25 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
         </div>
 
         {onSearchChange && (
-          <div className="px-4 pb-3">
-            <div className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2.5">
+          <div className="px-4 pb-3 flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2.5">
               <Search size={16} className="text-gray-400 shrink-0" />
               <input
                 type="text"
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search clothes, electronics, furniture..."
+                placeholder="Search items..."
                 className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
               />
             </div>
+
+            <button
+              type="button"
+              onClick={() => onSearchChange(searchValue)}
+              className="shrink-0 rounded-full bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
+            >
+              Go
+            </button>
           </div>
         )}
 
@@ -230,7 +238,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
         </div>
       </nav>
 
-      {/* Desktop top nav — logo, search, links, all one row like eBay */}
+      {/* Desktop top nav — logo, search + button, links, all one row */}
       <nav
         className="
           hidden
@@ -261,17 +269,25 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
           </Link>
 
           {onSearchChange && (
-            <div className="flex-1 max-w-xl">
-              <div className="flex items-center gap-3 rounded-full bg-gray-100 px-4 py-2.5 ring-1 ring-black/5 focus-within:ring-teal transition">
+            <div className="flex-1 max-w-md flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-3 rounded-full bg-gray-100 px-4 py-2.5 ring-1 ring-black/5 focus-within:ring-teal transition">
                 <Search size={18} className="text-gray-400 shrink-0" />
                 <input
                   type="text"
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Search clothes, electronics, furniture..."
+                  placeholder="Search clothes, electronics..."
                   className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={() => onSearchChange(searchValue)}
+                className="shrink-0 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
+              >
+                Search
+              </button>
             </div>
           )}
 
