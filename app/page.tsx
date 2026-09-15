@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import SearchBar from "@/components/home/SearchBar";
 import CategoryBar from "@/components/home/CategoryBar";
+import HeroCarousel, { Slide } from "@/components/home/HeroCarousel";
 import ItemCard from "@/components/listing/ItemCard";
 import ItemCardSkeleton from "@/components/listing/ItemCardSkeleton";
 import { getListings, Listing } from "@/lib/listings";
@@ -12,6 +13,38 @@ import { useAuth } from "@/lib/auth-context";
 import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites";
 import { getMutuallyBlockedUserIds } from "@/lib/moderation";
 import { useRouter } from "next/navigation";
+
+// Swap image paths for real photography. See sizing notes below.
+const heroSlides: Slide[] = [
+  {
+    image: "/hero/slide-1.jpg",
+    headline: "Buy it. Sell it. Love it.",
+    subtext: "From kids' clothes to local finds. Latvia's marketplace.",
+    ctaText: "Sell now",
+    ctaHref: "/sell",
+  },
+  {
+    image: "/hero/slide-2.jpg",
+    headline: "Support small shops near you",
+    subtext: "Discover independent sellers across Latvia, all in one place.",
+    ctaText: "Explore shops",
+    ctaHref: "/",
+  },
+  {
+    image: "/hero/slide-3.jpg",
+    headline: "Outgrown, not outdated",
+    subtext: "Give your kids' old clothes and toys a second life.",
+    ctaText: "Shop kids",
+    ctaHref: "/",
+  },
+  {
+    image: "/hero/slide-4.jpg",
+    headline: "Everything, close to home",
+    subtext: "Fashion, electronics, and more from real people nearby.",
+    ctaText: "Start browsing",
+    ctaHref: "/",
+  },
+];
 
 export default function Home() {
   const { user } = useAuth();
@@ -86,54 +119,45 @@ export default function Home() {
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
 
+      {/* Search — sits right under the top nav, eBay-style */}
+      <div className="border-b border-black/5 bg-white">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 py-3">
+          <SearchBar value={search} onChange={setSearch} />
+        </div>
+      </div>
+
+      {/* Hero carousel — 4 slides */}
+      <HeroCarousel slides={heroSlides} />
+
+      {/* Categories with images */}
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
-        <header className="pt-6 md:pt-10">
-          <p className="text-sm text-gray-500 md:hidden">Good afternoon 👋</p>
-
-          <h2 className="mt-2 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
-
-          <div className="mt-4 md:mt-6 md:max-w-2xl">
-            <SearchBar value={search} onChange={setSearch} />
-          </div>
-        </header>
-
-        <section className="mt-6 md:mt-8">
+        <section className="mt-6 md:mt-10">
           <CategoryBar selected={category} onSelect={setCategory} />
         </section>
       </div>
 
-      {!user && (
-        <section className="relative overflow-hidden bg-white mt-8 md:mt-12">
-          <div className="mx-auto max-w-7xl px-4 md:px-8 py-16 md:py-24">
-            <div className="max-w-md">
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-                Buy it. Sell it. Love it.
-              </h1>
-
-              <p className="mt-4 text-base md:text-lg text-gray-600">
-                From kids' clothes to local finds. Latvia's marketplace.
-              </p>
-
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/sell"
-                  className="rounded-full bg-teal px-8 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
-                >
-                  Sell now
-                </Link>
-
-                <Link
-                  href="/auth"
-                  className="rounded-full border border-gray-300 px-8 py-3.5 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                >
-                  Learn how it works
-                </Link>
-              </div>
-            </div>
+      {/* Second fold: Shopping made easy */}
+      <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
+        <section className="mt-8 md:mt-12 rounded-2xl bg-gray-50 px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h2 className="text-xl md:text-3xl font-bold tracking-tight">
+              Buying and selling made easy
+            </h2>
+            <p className="mt-2 text-sm md:text-base text-gray-600">
+              Secure payments, real reviews, and support every step of the way.
+            </p>
           </div>
-        </section>
-      )}
 
+          <Link
+            href={user ? "/sell" : "/auth"}
+            className="inline-flex w-fit items-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-black/80"
+          >
+            {user ? "Start selling" : "Start now"}
+          </Link>
+        </section>
+      </div>
+
+      {/* Listings */}
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <section className="mt-8 md:mt-12">
           <div className="mb-4 md:mb-6 flex justify-between items-center">
