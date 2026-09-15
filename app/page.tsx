@@ -86,16 +86,32 @@ export default function Home() {
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
 
+      <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
+        <header className="pt-6 md:pt-10">
+          <p className="text-sm text-gray-500 md:hidden">Good afternoon 👋</p>
+
+          <h2 className="mt-2 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
+
+          <div className="mt-4 md:mt-6 md:max-w-2xl">
+            <SearchBar value={search} onChange={setSearch} />
+          </div>
+        </header>
+
+        <section className="mt-6 md:mt-8">
+          <CategoryBar selected={category} onSelect={setCategory} />
+        </section>
+      </div>
+
       {!user && (
-        <section className="relative overflow-hidden bg-white">
+        <section className="relative overflow-hidden bg-white mt-8 md:mt-12">
           <div className="mx-auto max-w-7xl px-4 md:px-8 py-16 md:py-24">
             <div className="max-w-md">
               <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
-                Ready to declutter your closet?
+                Buy it. Sell it. Love it.
               </h1>
 
               <p className="mt-4 text-base md:text-lg text-gray-600">
-                Buy and sell pre-loved fashion, electronics, and more across the Baltics.
+                From kids' clothes to local finds. Latvia's marketplace.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -119,20 +135,6 @@ export default function Home() {
       )}
 
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
-        <header className="pt-6 md:pt-10">
-          <p className="text-sm text-gray-500 md:hidden">Good afternoon 👋</p>
-
-          <h2 className="mt-2 md:mt-0 text-xl md:text-3xl font-semibold">Find something you love</h2>
-
-          <div className="mt-4 md:mt-6 md:max-w-2xl">
-            <SearchBar value={search} onChange={setSearch} />
-          </div>
-        </header>
-
-        <section className="mt-6 md:mt-8">
-          <CategoryBar selected={category} onSelect={setCategory} />
-        </section>
-
         <section className="mt-8 md:mt-12">
           <div className="mb-4 md:mb-6 flex justify-between items-center">
             <h2 className="text-lg md:text-2xl font-bold">
