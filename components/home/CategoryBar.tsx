@@ -15,7 +15,7 @@ type CategoryBarProps = {
 
 export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
   return (
-    <div className="flex gap-4 overflow-x-auto py-2 scrollbar-hide">
+    <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 md:gap-6 w-full">
       {categories.map((category) => {
         const isActive = selected === category.name;
 
@@ -23,17 +23,15 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
           <button
             key={category.name}
             onClick={() => onSelect(isActive ? null : category.name)}
-            className="flex min-w-[84px] md:min-w-[104px] flex-col items-center gap-2 active:scale-95 transition"
+            className="flex w-full flex-col items-center gap-2 active:scale-95 transition"
           >
             <div
               className={`
-                relative h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-2xl
+                relative w-full aspect-square overflow-hidden rounded-2xl
                 ring-2 transition
                 ${isActive ? "ring-teal" : "ring-transparent"}
               `}
             >
-              {/* Swap this img for a real category photo when available.
-                  Falls back to an emoji tile so this works before assets exist. */}
               <img
                 src={category.image}
                 alt=""
@@ -42,7 +40,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                   (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
-              <span className="absolute inset-0 flex items-center justify-center text-2xl bg-gray-100/0 pointer-events-none">
+              <span className="absolute inset-0 flex items-center justify-center text-2xl md:text-4xl bg-gray-100">
                 {category.emoji}
               </span>
             </div>

@@ -11,11 +11,17 @@ import {
   Heart,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { listenToUserChats } from "@/lib/chat";
 
-export default function Navbar() {
+type NavbarProps = {
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+};
+
+export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,7 +44,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Mobile top header */}
+      {/* Mobile top header — logo, search, menu */}
       <nav
         className="
           sticky
@@ -64,6 +70,21 @@ export default function Navbar() {
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
+
+        {onSearchChange && (
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2.5">
+              <Search size={16} className="text-gray-400 shrink-0" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search clothes, electronics, furniture..."
+                className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+              />
+            </div>
+          </div>
+        )}
 
         {menuOpen && (
           <div className="border-t border-black/5 bg-white px-4 py-3 space-y-1">
@@ -209,7 +230,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Desktop top nav */}
+      {/* Desktop top nav — logo, search, links, all one row like eBay */}
       <nav
         className="
           hidden
@@ -229,17 +250,32 @@ export default function Navbar() {
             flex
             max-w-7xl
             items-center
-            justify-between
+            gap-6
             px-8
             py-4
           "
         >
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image src="/logo.png" alt="Bazaaric" width={44} height={44} priority />
             <span className="text-xl font-bold tracking-tight">Bazaaric</span>
           </Link>
 
-          <div className="flex items-center gap-8 text-sm font-medium text-gray-600">
+          {onSearchChange && (
+            <div className="flex-1 max-w-xl">
+              <div className="flex items-center gap-3 rounded-full bg-gray-100 px-4 py-2.5 ring-1 ring-black/5 focus-within:ring-teal transition">
+                <Search size={18} className="text-gray-400 shrink-0" />
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search clothes, electronics, furniture..."
+                  className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex shrink-0 items-center gap-8 text-sm font-medium text-gray-600">
             <Link href="/" className="flex items-center gap-2 hover:text-black">
               <Home size={18} />
               Home
@@ -265,7 +301,7 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             {!user && (
               <Link
                 href="/auth"

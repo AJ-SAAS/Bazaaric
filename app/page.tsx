@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import SearchBar from "@/components/home/SearchBar";
 import CategoryBar from "@/components/home/CategoryBar";
 import HeroCarousel, { Slide } from "@/components/home/HeroCarousel";
 import ItemCard from "@/components/listing/ItemCard";
@@ -14,7 +13,6 @@ import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites
 import { getMutuallyBlockedUserIds } from "@/lib/moderation";
 import { useRouter } from "next/navigation";
 
-// Swap image paths for real photography. See sizing notes below.
 const heroSlides: Slide[] = [
   {
     image: "/hero/slide-1.jpg",
@@ -117,26 +115,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
-      <Navbar />
+      <Navbar searchValue={search} onSearchChange={setSearch} />
 
-      {/* Search — sits right under the top nav, eBay-style */}
-      <div className="border-b border-black/5 bg-white">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 py-3">
-          <SearchBar value={search} onChange={setSearch} />
-        </div>
-      </div>
-
-      {/* Hero carousel — 4 slides */}
       <HeroCarousel slides={heroSlides} />
 
-      {/* Categories with images */}
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <section className="mt-6 md:mt-10">
           <CategoryBar selected={category} onSelect={setCategory} />
         </section>
       </div>
 
-      {/* Second fold: Shopping made easy */}
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <section className="mt-8 md:mt-12 rounded-2xl bg-gray-50 px-6 py-8 md:px-10 md:py-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -157,7 +145,6 @@ export default function Home() {
         </section>
       </div>
 
-      {/* Listings */}
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8">
         <section className="mt-8 md:mt-12">
           <div className="mb-4 md:mb-6 flex justify-between items-center">
