@@ -7,7 +7,7 @@ import ItemCard from "@/components/listing/ItemCard";
 import { getActiveListingsByUser, Listing } from "@/lib/listings";
 import { getPublicProfile, PublicProfile } from "@/lib/profiles";
 import { getReviewsForUser, getRatingStats, Review, RatingStats } from "@/lib/reviews";
-import { Star, CalendarDays } from "lucide-react";
+import { Star, CalendarDays, MapPin } from "lucide-react";
 
 type ReviewWithReviewer = Review & { reviewerName: string };
 
@@ -54,8 +54,6 @@ export default function SellerPage() {
         console.error("FAILED: getReviewsForUser", err);
       }
 
-      // Look up each reviewer's username for display. Small dataset per
-      // seller, so a call per review is fine rather than a batch fetch.
       const withNames = await Promise.all(
         r.map(async (review) => {
           try {
@@ -93,25 +91,49 @@ export default function SellerPage() {
     );
   }
 
-  const displayName = profile?.username || "Bazaaric seller";
+  const storeName = profile?.storeName?.trim() || profile?.username || "Bazaaric seller";
   const joinDate = profile?.createdAt?.toDate();
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <Navbar />
 
+      {/* Store banner — full-bleed, same 3:1 hero ratio as the homepage carousel */}
+      {profile?.storeBannerUrl && (
+        <div className="h-48 w-full overflow-hidden md:h-80">
+          <img
+            src={profile.storeBannerUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+
       <div className="mx-auto max-w-md md:max-w-5xl px-4 md:px-8 pt-6 md:pt-10">
         <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold break-words">{displayName}</h1>
+              <h1 className="text-xl md:text-2xl font-bold break-words">{storeName}</h1>
 
-              {joinDate && (
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                  <CalendarDays size={13} />
-                  Member since {joinDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-                </p>
+              {profile?.storeName && profile.username && (
+                <p className="mt-0.5 text-sm text-gray-500">@{profile.username}</p>
               )}
+
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                {joinDate && (
+                  <span className="flex items-center gap-1.5">
+                    <CalendarDays size={13} />
+                    Member since {joinDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                  </span>
+                )}
+
+                {profile?.storeLocation && (
+                  <span className="flex items-center gap-1.5">
+                    <MapPin size={13} />
+                    {profile.storeLocation}
+                  </span>
+                )}
+              </div>
             </div>
 
             {stats && stats.count > 0 && (
@@ -126,11 +148,17 @@ export default function SellerPage() {
               </div>
             )}
           </div>
+
+          {profile?.storeBio && (
+            <p className="mt-4 whitespace-pre-wrap break-words text-sm text-gray-700 border-t border-gray-100 pt-4">
+              {profile.storeBio}
+            </p>
+          )}
         </div>
 
         <section className="mt-8">
           <h2 className="mb-4 text-lg md:text-2xl font-bold break-words">
-            {displayName}'s listings
+            {storeName}'s listings
           </h2>
 
           {listings.length === 0 ? (

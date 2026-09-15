@@ -12,6 +12,9 @@ import {
   changeUsername,
   getUsernameChangeEligibility,
   isValidUsername,
+  uploadStoreBanner,
+  deleteStoreBanner,
+  updateStoreProfile,
   PublicProfile,
 } from "@/lib/profiles";
 import { updateDisplayName, getUserName, changeUserPassword } from "@/lib/account";
@@ -19,7 +22,7 @@ import { getRatingStats, RatingStats } from "@/lib/reviews";
 import { startStripeOnboarding, refreshStripeStatus } from "@/lib/payments";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { Plus, Star, CreditCard, CheckCircle2 } from "lucide-react";
+import { Plus, Star, CreditCard, CheckCircle2, Store, ImageUp } from "lucide-react";
 
 export default function ProfilePageContent() {
   const { user, loading } = useAuth();
@@ -49,6 +52,15 @@ export default function ProfilePageContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
+
+  // Store settings state
+  const [storeNameInput, setStoreNameInput] = useState("");
+  const [storeBioInput, setStoreBioInput] = useState("");
+  const [storeLocationInput, setStoreLocationInput] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [storeSaving, setStoreSaving] = useState(false);
+  const [storeMessage, setStoreMessage] = useState("");
 
   // Payouts (Stripe Connect) state
   const [payoutsEnabled, setPayoutsEnabled] = useState(false);
@@ -108,6 +120,10 @@ export default function ProfilePageContent() {
       setNextUsernameEligible(eligibility);
       setStats(s);
       setPayoutsEnabled(!!p?.stripeChargesEnabled);
+      setStoreNameInput(p?.storeName || "");
+      setStoreBioInput(p?.storeBio || "");
+      setStoreLocationInput(p?.storeLocation || "");
+      setBannerPreview(p?.storeBannerUrl || "");
       setSettingsLoading(false);
     }
 
@@ -226,6 +242,52 @@ export default function ProfilePageContent() {
       );
     } finally {
       setPasswordSaving(false);
+    }
+  }
+
+  function handleBannerSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
+  }
+
+  async function handleSaveStore() {
+    if (!user) return;
+
+    setStoreSaving(true);
+    setStoreMessage("");
+
+    try {
+      const previousBannerUrl = profile?.storeBannerUrl;
+      let bannerUrl = profile?.storeBannerUrl;
+
+      if (bannerFile) {
+        bannerUrl = await uploadStoreBanner(user.uid, bannerFile);
+      }
+
+      await updateStoreProfile(user.uid, {
+        storeName: storeNameInput.trim(),
+        storeBio: storeBioInput.trim(),
+        storeLocation: storeLocationInput.trim(),
+        ...(bannerUrl ? { storeBannerUrl: bannerUrl } : {}),
+      });
+
+      // Only remove the old banner file once the new one is safely
+      // saved on the profile doc.
+      if (bannerFile && previousBannerUrl && previousBannerUrl !== bannerUrl) {
+        deleteStoreBanner(previousBannerUrl).catch(() => {});
+      }
+
+      const updatedProfile = await getPublicProfile(user.uid);
+      setProfile(updatedProfile);
+      setBannerFile(null);
+      setStoreMessage("Store updated.");
+    } catch (err: any) {
+      setStoreMessage(err.message || "Couldn't update your store.");
+    } finally {
+      setStoreSaving(false);
     }
   }
 
@@ -423,6 +485,100 @@ export default function ProfilePageContent() {
             )}
           </div>
         </section>
+
+        {/* Store settings — only shown once a username exists, since the
+            store page falls back to displaying the username */}
+        {profile && (
+          <section className="mt-10">
+            <h2 className="mb-4 flex items-center gap-2 text-lg md:text-2xl font-bold">
+              <Store size={22} />
+              Your store
+            </h2>
+
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 space-y-4">
+              {/* Banner */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Store banner</label>
+
+                <label
+                  htmlFor="banner-upload"
+                  className="mt-2 flex aspect-[3/1] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-gray-50 ring-1 ring-black/10 hover:bg-gray-100 transition"
+                >
+                  {bannerPreview ? (
+                    <img
+                      src={bannerPreview}
+                      alt="Store banner preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex flex-col items-center gap-1 text-gray-400">
+                      <ImageUp size={22} />
+                      <span className="text-xs">Upload a banner image</span>
+                    </span>
+                  )}
+                </label>
+
+                <input
+                  id="banner-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerSelect}
+                  className="hidden"
+                />
+
+                <p className="mt-1.5 text-xs text-gray-400">
+                  Landscape image works best, roughly 2400×800px.
+                </p>
+              </div>
+
+              {/* Store name */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Store name</label>
+                <input
+                  type="text"
+                  value={storeNameInput}
+                  onChange={(e) => setStoreNameInput(e.target.value)}
+                  placeholder={profile.username ? `Defaults to @${profile.username}` : "Your store name"}
+                  className="mt-2 w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">About your store</label>
+                <textarea
+                  value={storeBioInput}
+                  onChange={(e) => setStoreBioInput(e.target.value)}
+                  placeholder="Tell buyers what you sell and who you are..."
+                  rows={4}
+                  className="mt-2 w-full rounded-xl bg-gray-50 px-3 py-2.5 text-sm ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal resize-none"
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Location</label>
+                <input
+                  type="text"
+                  value={storeLocationInput}
+                  onChange={(e) => setStoreLocationInput(e.target.value)}
+                  placeholder="e.g. Riga"
+                  className="mt-2 w-full rounded-xl bg-gray-50 px-3 py-2.5 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                />
+              </div>
+
+              <button
+                onClick={handleSaveStore}
+                disabled={storeSaving}
+                className="w-full rounded-xl bg-teal px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
+              >
+                {storeSaving ? "Saving..." : "Save store"}
+              </button>
+
+              {storeMessage && <p className="text-xs text-gray-600">{storeMessage}</p>}
+            </div>
+          </section>
+        )}
 
         {/* Account settings */}
         <section className="mt-10">

@@ -2,12 +2,15 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   deleteDoc,
   runTransaction,
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
+import { deletePhotosByUrl } from "@/lib/listings";
 
 export type PublicProfile = {
   uid: string;
@@ -15,6 +18,10 @@ export type PublicProfile = {
   usernameChangedAt: Timestamp | null;
   createdAt: Timestamp | null;
   stripeChargesEnabled?: boolean;
+  storeName?: string;
+  storeBannerUrl?: string;
+  storeBio?: string;
+  storeLocation?: string;
 };
 
 const USERNAME_COOLDOWN_DAYS = 30;
@@ -123,4 +130,89 @@ export async function changeUsername(uid: string, newUsername: string): Promise<
       usernameChangedAt: serverTimestamp(),
     });
   });
+}
+
+// Same in-browser resize + re-encode approach as listing photo uploads,
+// just wider dimensions since a store banner is a full-bleed hero strip
+// (3:1), matching the homepage hero carousel, not a square product shot.
+function compressBannerImage(file: File, maxWidth = 2400, quality = 0.8): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Canvas not supported on this device."));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(objectUrl);
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Image compression failed."));
+          }
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Couldn't read that image file."));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+// Uploads a new banner and returns its URL. Does not delete the old
+// banner — call deleteStoreBanner separately with the previous URL
+// once the profile doc is updated, so a failed profile write never
+// leaves a seller with no banner at all.
+export async function uploadStoreBanner(uid: string, file: File): Promise<string> {
+  const compressed = await compressBannerImage(file);
+
+  const path = `store-banners/${uid}/${Date.now()}.jpg`;
+  const storageRef = ref(storage, path);
+
+  await uploadBytes(storageRef, compressed, { contentType: "image/jpeg" });
+  return getDownloadURL(storageRef);
+}
+
+export async function deleteStoreBanner(url: string): Promise<void> {
+  await deletePhotosByUrl([url]);
+}
+
+type StoreProfileInput = {
+  storeName?: string;
+  storeBannerUrl?: string;
+  storeBio?: string;
+  storeLocation?: string;
+};
+
+// Uses setDoc with merge so this works even if, for some edge case,
+// the profile doc doesn't exist yet — though in practice a seller
+// needs a username (and therefore a profile doc) before reaching
+// store settings in the UI.
+export async function updateStoreProfile(uid: string, input: StoreProfileInput): Promise<void> {
+  await setDoc(doc(db, "public_profiles", uid), input, { merge: true });
 }
