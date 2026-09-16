@@ -13,8 +13,10 @@ import {
   X,
   Search,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { listenToUserChats } from "@/lib/chat";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 type NavbarProps = {
   searchValue?: string;
@@ -23,6 +25,7 @@ type NavbarProps = {
 
 export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps) {
   const { user } = useAuth();
+  const t = useTranslations("nav");
   const [unreadCount, setUnreadCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -62,13 +65,17 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             <Image src="/logo.png" alt="Bazaaric" width={36} height={36} priority />
           </Link>
 
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100"
-            aria-label="Menu"
-          >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100"
+              aria-label="Menu"
+            >
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
 
         {onSearchChange && (
@@ -79,7 +86,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                 type="text"
                 value={searchValue}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search items..."
+                placeholder={t("searchPlaceholder")}
                 className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
               />
             </div>
@@ -89,7 +96,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               onClick={() => onSearchChange(searchValue)}
               className="shrink-0 rounded-full bg-teal px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
             >
-              Go
+              {t("search")}
             </button>
           </div>
         )}
@@ -102,7 +109,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <Home size={18} />
-              Home
+              {t("home")}
             </Link>
             <Link
               href="/favorites"
@@ -110,7 +117,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <Heart size={18} />
-              Favorites
+              {t("favorites")}
             </Link>
             <Link
               href="/inbox"
@@ -118,7 +125,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <MessageCircle size={18} />
-              Inbox
+              {t("inbox")}
               {unreadCount > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -133,7 +140,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <User size={18} />
-                Profile
+                {t("profile")}
               </Link>
             ) : (
               <Link
@@ -142,7 +149,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <User size={18} />
-                Log in
+                {t("profile")}
               </Link>
             )}
 
@@ -152,7 +159,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               className="flex items-center justify-center gap-2 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark mt-2"
             >
               <Plus size={18} />
-              Sell
+              {t("sell")}
             </Link>
           </div>
         )}
@@ -188,12 +195,12 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
         >
           <Link href="/" className="flex flex-col items-center gap-1">
             <Home size={21} />
-            Home
+            {t("home")}
           </Link>
 
           <Link href="/favorites" className="flex flex-col items-center gap-1">
             <Heart size={21} />
-            Favorites
+            {t("favorites")}
           </Link>
 
           <Link
@@ -216,7 +223,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
 
           <Link href="/inbox" className="relative flex flex-col items-center gap-1">
             <MessageCircle size={21} />
-            Inbox
+            {t("inbox")}
             {unreadCount > 0 && (
               <span className="absolute -top-1 right-3 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -227,18 +234,18 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
           {user ? (
             <Link href="/profile" className="flex flex-col items-center gap-1">
               <User size={21} />
-              Profile
+              {t("profile")}
             </Link>
           ) : (
             <Link href="/auth" className="flex flex-col items-center gap-1">
               <User size={21} />
-              Log in
+              {t("profile")}
             </Link>
           )}
         </div>
       </nav>
 
-      {/* Desktop top nav — logo, search + button, links, all one row */}
+      {/* Desktop top nav — logo, search + button, links, language, all one row */}
       <nav
         className="
           hidden
@@ -276,7 +283,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                   type="text"
                   value={searchValue}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Search clothes, electronics..."
+                  placeholder={t("searchPlaceholder")}
                   className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
                 />
               </div>
@@ -286,7 +293,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                 onClick={() => onSearchChange(searchValue)}
                 className="shrink-0 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
               >
-                Search
+                {t("search")}
               </button>
             </div>
           )}
@@ -294,15 +301,15 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
           <div className="flex shrink-0 items-center gap-8 text-sm font-medium text-gray-600">
             <Link href="/" className="flex items-center gap-2 hover:text-black">
               <Home size={18} />
-              Home
+              {t("home")}
             </Link>
             <Link href="/favorites" className="flex items-center gap-2 hover:text-black">
               <Heart size={18} />
-              Favorites
+              {t("favorites")}
             </Link>
             <Link href="/inbox" className="relative flex items-center gap-2 hover:text-black">
               <MessageCircle size={18} />
-              Inbox
+              {t("inbox")}
               {unreadCount > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -312,12 +319,14 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             {user && (
               <Link href="/profile" className="flex items-center gap-2 hover:text-black">
                 <User size={18} />
-                Profile
+                {t("profile")}
               </Link>
             )}
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
+            <LanguageSwitcher />
+
             {!user && (
               <Link
                 href="/auth"
@@ -334,7 +343,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
                   hover:bg-gray-50
                 "
               >
-                Sign up / Log in
+                {t("signUpLogIn")}
               </Link>
             )}
 
@@ -357,7 +366,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               "
             >
               <Plus size={18} />
-              Sell
+              {t("sell")}
             </Link>
           </div>
         </div>

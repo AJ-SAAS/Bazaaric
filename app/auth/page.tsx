@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import AuthForm from "@/components/auth/AuthForm";
 
-export default function AuthPage() {
+export default async function AuthPage() {
+  const t = await getTranslations("auth");
+
   return (
     <main className="min-h-screen overflow-x-hidden p-6">
       <Link
@@ -13,11 +16,11 @@ export default function AuthPage() {
       </Link>
 
       <h1 className="text-3xl font-bold text-center mt-6 break-words">
-        Welcome to Bazaaric
+        {t("welcomeTitle")}
       </h1>
 
       <p className="text-center text-gray-500 mt-2 break-words">
-        Buy and sell across the Baltics
+        {t("welcomeSubtitle")}
       </p>
 
       <Suspense fallback={<div className="mt-20 text-center text-sm text-gray-500">Loading...</div>}>

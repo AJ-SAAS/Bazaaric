@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, Order } from "@/lib/orders";
 import { getOrCreateChat } from "@/lib/chat";
@@ -12,25 +13,26 @@ import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
 
-const statusStyles: Record<Order["status"], string> = {
-  offer_pending: "bg-amber-100 text-amber-700",
-  offer_accepted: "bg-green-100 text-green-700",
-  offer_declined: "bg-red-100 text-red-700",
-  completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-red-100 text-red-700",
-};
-
-const statusLabels: Record<Order["status"], string> = {
-  offer_pending: "Pending",
-  offer_accepted: "Accepted",
-  offer_declined: "Declined",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
 export default function OffersPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const t = useTranslations("offers");
+
+  const statusStyles: Record<Order["status"], string> = {
+    offer_pending: "bg-amber-100 text-amber-700",
+    offer_accepted: "bg-green-100 text-green-700",
+    offer_declined: "bg-red-100 text-red-700",
+    completed: "bg-gray-100 text-gray-700",
+    cancelled: "bg-red-100 text-red-700",
+  };
+
+  const statusLabels: Record<Order["status"], string> = {
+    offer_pending: t("pending"),
+    offer_accepted: t("accepted"),
+    offer_declined: t("declined"),
+    completed: t("completed"),
+    cancelled: t("cancelled"),
+  };
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -71,11 +73,7 @@ export default function OffersPage() {
 
     const profile = await getPublicProfile(user.uid);
     if (!profile?.stripeChargesEnabled) {
-      if (
-        confirm(
-          "You need to set up payouts before accepting offers, so you can actually get paid. Set up payouts now?"
-        )
-      ) {
+      if (confirm(t("needPayoutsToAccept"))) {
         router.push("/profile");
       }
       return;
@@ -122,18 +120,14 @@ export default function OffersPage() {
       const url = await createCheckoutSession(order.id);
       window.location.href = url;
     } catch (err: any) {
-      alert(err.message || "Couldn't start checkout. Try again.");
+      alert(err.message || t("couldntStartCheckout"));
     } finally {
       setActingOn(null);
     }
   }
 
   async function handleCancelAndRefund(order: Order) {
-    if (
-      !confirm(
-        "Cancel this order and issue a full refund? The item will be listed as available again."
-      )
-    ) {
+    if (!confirm(t("confirmCancelAndRefund"))) {
       return;
     }
 
@@ -148,7 +142,7 @@ export default function OffersPage() {
         )
       );
     } catch (err: any) {
-      alert(err.message || "Couldn't process the refund. Try again.");
+      alert(err.message || t("couldntProcessRefund"));
     } finally {
       setActingOn(null);
     }
@@ -174,7 +168,7 @@ export default function OffersPage() {
     setReviewTarget({
       order,
       revieweeId,
-      revieweeName: profile?.username || (isSeller ? "the buyer" : "the seller"),
+      revieweeName: profile?.username || (isSeller ? t("theBuyer") : t("theSeller")),
     });
   }
 
@@ -228,7 +222,7 @@ export default function OffersPage() {
               </p>
             ) : (
               <p className="text-xs text-gray-500">
-                Offered <span className="font-semibold">€{order.offerAmount}</span>{" "}
+                {t("offeredLabel")} <span className="font-semibold">€{order.offerAmount}</span>{" "}
                 <span className="line-through">€{order.originalPrice}</span>
               </p>
             )}
@@ -246,7 +240,7 @@ export default function OffersPage() {
             onClick={() => handleOpenChat(order)}
             className="rounded-full border border-gray-300 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
           >
-            Open chat
+            {t("openChat")}
           </button>
 
           {isSeller && !order.isDirect && order.status === "offer_pending" && (
@@ -256,14 +250,14 @@ export default function OffersPage() {
                 disabled={actingOn === order.id}
                 className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
               >
-                Accept
+                {t("accept")}
               </button>
               <button
                 onClick={() => handleDecline(order)}
                 disabled={actingOn === order.id}
                 className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
               >
-                Decline
+                {t("decline")}
               </button>
             </>
           )}
@@ -274,7 +268,7 @@ export default function OffersPage() {
               disabled={actingOn === order.id}
               className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
             >
-              {actingOn === order.id ? "Redirecting..." : "Pay now"}
+              {actingOn === order.id ? t("redirecting") : t("payNow")}
             </button>
           )}
 
@@ -284,7 +278,7 @@ export default function OffersPage() {
               disabled={actingOn === order.id}
               className="rounded-full bg-ink px-4 py-1.5 text-xs font-semibold text-white hover:bg-black disabled:opacity-60"
             >
-              {actingOn === order.id ? "Marking..." : "Mark as completed"}
+              {actingOn === order.id ? t("marking") : t("markAsCompleted")}
             </button>
           )}
 
@@ -294,21 +288,21 @@ export default function OffersPage() {
               disabled={actingOn === order.id}
               className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              {actingOn === order.id ? "Processing..." : "Cancel & refund"}
+              {actingOn === order.id ? t("processing") : t("cancelAndRefund")}
             </button>
           )}
 
           {order.status === "completed" && (
             alreadyReviewed ? (
               <span className="rounded-full bg-gray-100 px-4 py-1.5 text-xs font-semibold text-gray-500">
-                Reviewed ✓
+                {t("reviewed")}
               </span>
             ) : (
               <button
                 onClick={() => handleOpenReview(order)}
                 className="rounded-full border border-teal px-4 py-1.5 text-xs font-semibold text-teal hover:bg-teal/5"
               >
-                Leave a review
+                {t("leaveAReview")}
               </button>
             )
           )}
@@ -325,9 +319,9 @@ export default function OffersPage() {
         </h2>
 
         {ordersLoading ? (
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-sm text-gray-500">{t("loading")}</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-gray-500">Nothing here yet.</p>
+          <p className="text-sm text-gray-500">{t("nothingHereYet")}</p>
         ) : (
           <div className="space-y-3">
             {items.map((o) => (
@@ -344,18 +338,18 @@ export default function OffersPage() {
       <Navbar />
 
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
-        <h1 className="text-2xl md:text-3xl font-bold">Offers</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
 
         {ordersError && (
           <p className="mt-4 text-sm text-red-600">
-            Couldn't load offers: {ordersError}
+            {t("couldntLoadOffers", { error: ordersError })}
           </p>
         )}
 
-        <OrderSection title="Your purchases" items={purchasesMade} />
-        <OrderSection title="Offers you've made" items={offersMade} />
-        <OrderSection title="Your sales" items={salesReceived} />
-        <OrderSection title="Offers you've received" items={offersReceived} />
+        <OrderSection title={t("yourPurchases")} items={purchasesMade} />
+        <OrderSection title={t("offersYouveMade")} items={offersMade} />
+        <OrderSection title={t("yourSales")} items={salesReceived} />
+        <OrderSection title={t("offersYouveReceived")} items={offersReceived} />
       </div>
 
       {reviewTarget && (

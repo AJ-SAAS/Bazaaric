@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { listenToUserChats, Chat } from "@/lib/chat";
 import Navbar from "@/components/layout/Navbar";
@@ -10,6 +11,7 @@ import Link from "next/link";
 export default function InboxPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const t = useTranslations("inbox");
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(true);
   const [chatsError, setChatsError] = useState("");
@@ -51,24 +53,24 @@ export default function InboxPage() {
       <Navbar />
 
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
-        <h1 className="text-2xl md:text-3xl font-bold">Inbox</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
 
         {chatsError && (
           <p className="mt-6 text-sm text-red-600">
-            Couldn't load conversations: {chatsError}
+            {t("couldntLoadConversations", { error: chatsError })}
           </p>
         )}
 
         {chatsLoading ? (
-          <p className="mt-6 text-sm text-gray-500">Loading conversations...</p>
+          <p className="mt-6 text-sm text-gray-500">{t("loadingConversations")}</p>
         ) : chats.length === 0 ? (
           <p className="mt-6 text-sm text-gray-500">
-            No conversations yet. Message a seller from an item page to start one.
+            {t("noConversationsYet")}
           </p>
         ) : (
           <div className="mt-6 space-y-3">
             {chats.map((chat) => {
-              const otherRole = chat.buyerId === user.uid ? "seller" : "buyer";
+              const otherRole = chat.buyerId === user.uid ? t("seller") : t("buyer");
 
               return (
                 <Link
@@ -89,7 +91,7 @@ export default function InboxPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate">{chat.listingTitle}</p>
                     <p className="text-xs text-gray-500 truncate">
-                      {chat.lastMessage || `Say hello to the ${otherRole}`}
+                      {chat.lastMessage || t("sayHelloTo", { role: otherRole })}
                     </p>
                   </div>
                 </Link>

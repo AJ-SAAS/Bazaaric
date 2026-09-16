@@ -1,17 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { ReportReason } from "@/lib/moderation";
-
-const reasons: { value: ReportReason; label: string }[] = [
-  { value: "scam_or_fraud", label: "Scam or fraud" },
-  { value: "harassment", label: "Harassment or abuse" },
-  { value: "prohibited_item", label: "Prohibited item" },
-  { value: "counterfeit", label: "Counterfeit goods" },
-  { value: "spam", label: "Spam" },
-  { value: "other", label: "Other" },
-];
 
 type ReportModalProps = {
   title: string;
@@ -20,6 +12,17 @@ type ReportModalProps = {
 };
 
 export default function ReportModal({ title, onClose, onSubmit }: ReportModalProps) {
+  const t = useTranslations("report");
+
+  const reasons: { value: ReportReason; label: string }[] = [
+    { value: "scam_or_fraud", label: t("scamOrFraud") },
+    { value: "harassment", label: t("harassment") },
+    { value: "prohibited_item", label: t("prohibitedItem") },
+    { value: "counterfeit", label: t("counterfeit") },
+    { value: "spam", label: t("spam") },
+    { value: "other", label: t("other") },
+  ];
+
   const [reason, setReason] = useState<ReportReason | "">("");
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +32,7 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!reason) {
-      setError("Please select a reason.");
+      setError(t("selectReason"));
       return;
     }
 
@@ -40,7 +43,7 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
       await onSubmit(reason, details);
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.message || "Couldn't submit report. Try again.");
+      setError(err.message || t("couldntSubmitReport"));
     } finally {
       setSubmitting(false);
     }
@@ -58,15 +61,15 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
 
         {submitted ? (
           <div className="py-6 text-center">
-            <p className="text-sm font-medium text-gray-900">Report submitted</p>
+            <p className="text-sm font-medium text-gray-900">{t("reportSubmitted")}</p>
             <p className="mt-1 text-sm text-gray-500">
-              Thanks — our team will review this.
+              {t("thanksWellReview")}
             </p>
             <button
               onClick={onClose}
               className="mt-4 rounded-full bg-teal px-6 py-2 text-sm font-semibold text-white"
             >
-              Close
+              {t("close")}
             </button>
           </div>
         ) : (
@@ -92,7 +95,7 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
             <textarea
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Additional details (optional)"
+              placeholder={t("additionalDetails")}
               rows={3}
               className="w-full rounded-xl bg-gray-50 px-3 py-2.5 text-sm outline-none placeholder:text-gray-400"
             />
@@ -104,7 +107,7 @@ export default function ReportModal({ title, onClose, onSubmit }: ReportModalPro
               disabled={submitting}
               className="w-full rounded-full bg-red-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
             >
-              {submitting ? "Submitting..." : "Submit report"}
+              {submitting ? t("submitting") : t("submitReport")}
             </button>
           </form>
         )}

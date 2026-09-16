@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Plus, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { createListing, updateListing, getListing, uploadPhotos, deletePhotosByUrl } from "@/lib/listings";
 import type { Condition } from "@/lib/listings";
 import { CATEGORIES } from "@/lib/categories";
 
-const conditions: { value: Condition; label: string }[] = [
-  { value: "new", label: "Brand new" },
-  { value: "used", label: "Used" },
-];
 const MAX_PHOTOS = 8;
 
 type NewPhoto = { file: File; url: string };
@@ -22,6 +19,13 @@ export default function SellPageContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
   const isEditMode = !!editId;
+  const t = useTranslations("sell");
+  const tCategories = useTranslations("categories");
+
+  const conditions: { value: Condition; label: string }[] = [
+    { value: "new", label: t("conditionNew") },
+    { value: "used", label: t("conditionUsed") },
+  ];
 
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
@@ -43,7 +47,7 @@ export default function SellPageContent() {
 
     getListing(editId).then((listing) => {
       if (!listing) {
-        setError("Listing not found.");
+        setError(t("listingNotFound"));
         setLoadingListing(false);
         return;
       }
@@ -58,7 +62,7 @@ export default function SellPageContent() {
       setExistingImages(listing.imageUrls);
       setLoadingListing(false);
     });
-  }, [editId]);
+  }, [editId, t]);
 
   function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -92,7 +96,7 @@ export default function SellPageContent() {
     setError("");
 
     if (!user) {
-      setError("You need to be logged in to sell an item.");
+      setError(t("mustBeLoggedIn"));
       return;
     }
 
@@ -100,7 +104,7 @@ export default function SellPageContent() {
     const qty = parseInt(quantity, 10);
 
     if (!title || !price || !category || !condition || totalPhotos === 0 || !qty || qty < 1) {
-      setError("Please add at least one photo, a title, category, condition, price, and quantity of at least 1.");
+      setError(t("fillRequiredFields"));
       return;
     }
 
@@ -153,7 +157,7 @@ export default function SellPageContent() {
         router.push(`/item/${id}`);
       }
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || t("somethingWentWrong"));
     } finally {
       setSubmitting(false);
       setUploadProgress(null);
@@ -171,12 +175,12 @@ export default function SellPageContent() {
   if (!user) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-lg font-semibold">You need an account to sell</p>
+        <p className="text-lg font-semibold">{t("needAccount")}</p>
         <button
           onClick={() => router.push("/auth")}
           className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
         >
-          Log in or sign up
+          {t("logInOrSignUp")}
         </button>
       </main>
     );
@@ -186,18 +190,18 @@ export default function SellPageContent() {
 
   const submitLabel = submitting
     ? uploadProgress
-      ? `Uploading ${uploadProgress.done}/${uploadProgress.total}...`
-      : "Saving..."
+      ? t("uploading", { done: uploadProgress.done, total: uploadProgress.total })
+      : t("saving")
     : isEditMode
-    ? "Save changes"
-    : "Upload";
+    ? t("saveChanges")
+    : t("upload");
 
   return (
     <main className="min-h-screen bg-[#faf9f6] pb-28 md:pb-12">
       <div className="mx-auto max-w-md md:max-w-3xl px-4 md:px-8 pt-6 md:pt-10">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            {isEditMode ? "Edit item" : "Sell an item"}
+            {isEditMode ? t("editItem") : t("sellAnItem")}
           </h1>
 
           <button
@@ -205,13 +209,13 @@ export default function SellPageContent() {
             disabled={submitting}
             className="text-sm font-medium text-gray-500 transition hover:text-gray-800 disabled:opacity-50"
           >
-            Cancel
+            {t("cancel")}
           </button>
         </div>
 
         <section className="mt-8">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700">Photos</h2>
+            <h2 className="text-sm font-semibold text-gray-700">{t("photos")}</h2>
             <span className="text-xs text-gray-400">{totalPhotos}/{MAX_PHOTOS}</span>
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
@@ -245,7 +249,7 @@ export default function SellPageContent() {
               {totalPhotos < MAX_PHOTOS && (
                 <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-teal hover:text-teal">
                   <Plus size={22} />
-                  <span className="text-xs font-medium">Add photo</span>
+                  <span className="text-xs font-medium">{t("addPhoto")}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -257,30 +261,30 @@ export default function SellPageContent() {
                 </label>
               )}
             </div>
-            <p className="mt-3 text-xs text-gray-400">Up to {MAX_PHOTOS} photos. Just pick straight from your camera roll — we handle the rest.</p>
+            <p className="mt-3 text-xs text-gray-400">{t("photosHelp", { max: MAX_PHOTOS })}</p>
           </div>
         </section>
 
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">About your item</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">{t("aboutYourItem")}</h2>
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Title</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("title")}</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Tell buyers what you're selling"
+                placeholder={t("titlePlaceholder")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
               />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-start gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Description</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("description")}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tell buyers more about it"
+                placeholder={t("descriptionPlaceholder")}
                 rows={4}
                 className="w-full resize-none bg-transparent text-sm outline-none placeholder:text-gray-400"
               />
@@ -289,30 +293,30 @@ export default function SellPageContent() {
         </section>
 
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">Item details</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">{t("itemDetails")}</h2>
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 divide-y divide-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Category</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("category")}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-transparent text-sm outline-none text-gray-900"
               >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>{t("selectCategory")}</option>
                 {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
+                  <option key={c.id} value={c.id}>{tCategories(c.id)}</option>
                 ))}
               </select>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Condition</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("condition")}</label>
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value as Condition)}
                 className="w-full bg-transparent text-sm outline-none text-gray-900"
               >
-                <option value="" disabled>Select a condition</option>
+                <option value="" disabled>{t("selectCondition")}</option>
                 {conditions.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
@@ -320,12 +324,12 @@ export default function SellPageContent() {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Location</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("location")}</label>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. Vilnius"
+                placeholder={t("locationPlaceholder")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
               />
             </div>
@@ -333,10 +337,10 @@ export default function SellPageContent() {
         </section>
 
         <section className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">Pricing</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-700">{t("pricing")}</h2>
           <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4">
-              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">Price</label>
+              <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">{t("price")}</label>
               <div className="flex items-center gap-1 w-full">
                 <span className="text-sm text-gray-500">€</span>
                 <input
@@ -351,7 +355,7 @@ export default function SellPageContent() {
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-4 border-t border-gray-100">
               <label className="w-full sm:w-32 text-sm font-medium text-gray-700 shrink-0">
-                Quantity
+                {t("quantity")}
               </label>
               <input
                 type="number"
@@ -373,7 +377,7 @@ export default function SellPageContent() {
             disabled={submitting}
             className="rounded-full border border-teal px-6 py-2.5 text-sm font-semibold text-teal transition hover:bg-teal/5 disabled:opacity-60"
           >
-            Save draft
+            {t("saveDraft")}
           </button>
 
           <button

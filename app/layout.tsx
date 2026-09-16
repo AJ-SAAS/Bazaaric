@@ -2,6 +2,8 @@ import "./globals.css";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import Footer from "@/components/layout/Footer";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "@/lib/i18n";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,13 +20,16 @@ export const viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = (await import(`@/messages/${locale}.json`)).default;
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body
         className={`
           ${inter.className}
@@ -36,10 +41,12 @@ export default function RootLayout({
           flex-col
         `}
       >
-        <AuthProvider>
-          <div className="flex-1">{children}</div>
-          <Footer />
-        </AuthProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

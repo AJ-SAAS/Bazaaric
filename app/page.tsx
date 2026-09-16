@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import Navbar from "@/components/layout/Navbar";
 import CategoryBar from "@/components/home/CategoryBar";
 import HeroCarousel, { Slide } from "@/components/home/HeroCarousel";
@@ -13,40 +14,11 @@ import { addFavorite, removeFavorite, getUserFavoriteIds } from "@/lib/favorites
 import { getMutuallyBlockedUserIds } from "@/lib/moderation";
 import { useRouter } from "next/navigation";
 
-const heroSlides: Slide[] = [
-  {
-    image: "/hero/slide-1.jpg",
-    headline: "Buy it. Sell it. Love it.",
-    subtext: "From kids' clothes to local finds. Latvia's marketplace.",
-    ctaText: "Sell now",
-    ctaHref: "/sell",
-  },
-  {
-    image: "/hero/slide-2.jpg",
-    headline: "Support small shops near you",
-    subtext: "Discover independent sellers across Latvia, all in one place.",
-    ctaText: "Explore shops",
-    ctaHref: "/",
-  },
-  {
-    image: "/hero/slide-3.jpg",
-    headline: "Outgrown, not outdated",
-    subtext: "Give your kids' old clothes and toys a second life.",
-    ctaText: "Shop kids",
-    ctaHref: "/",
-  },
-  {
-    image: "/hero/slide-4.jpg",
-    headline: "Everything, close to home",
-    subtext: "Fashion, electronics, and more from real people nearby.",
-    ctaText: "Start browsing",
-    ctaHref: "/",
-  },
-];
-
 export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations("home");
+  const tHero = useTranslations("hero");
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +26,40 @@ export default function Home() {
   const [category, setCategory] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+
+  const heroSlides: Slide[] = useMemo(
+    () => [
+      {
+        image: "/hero/slide-1.jpg",
+        headline: tHero("slide1Headline"),
+        subtext: tHero("slide1Subtext"),
+        ctaText: tHero("slide1Cta"),
+        ctaHref: "/sell",
+      },
+      {
+        image: "/hero/slide-2.jpg",
+        headline: tHero("slide2Headline"),
+        subtext: tHero("slide2Subtext"),
+        ctaText: tHero("slide2Cta"),
+        ctaHref: "/",
+      },
+      {
+        image: "/hero/slide-3.jpg",
+        headline: tHero("slide3Headline"),
+        subtext: tHero("slide3Subtext"),
+        ctaText: tHero("slide3Cta"),
+        ctaHref: "/",
+      },
+      {
+        image: "/hero/slide-4.jpg",
+        headline: tHero("slide4Headline"),
+        subtext: tHero("slide4Subtext"),
+        ctaText: tHero("slide4Cta"),
+        ctaHref: "/",
+      },
+    ],
+    [tHero]
+  );
 
   useEffect(() => {
     getListings(50)
@@ -149,7 +155,7 @@ export default function Home() {
         <section className="mt-8 md:mt-12">
           <div className="mb-4 md:mb-6 flex justify-between items-center">
             <h2 className="text-lg md:text-2xl font-bold">
-              {search || category ? "Results" : "Fresh finds"}
+              {search || category ? t("results") : t("freshFinds")}
             </h2>
           </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CATEGORIES } from "@/lib/categories";
 
 type CategoryBarProps = {
@@ -8,6 +9,8 @@ type CategoryBarProps = {
 };
 
 export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
+  const t = useTranslations("categories");
+
   return (
     <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 md:gap-6 w-full">
       {CATEGORIES.map((category) => {
@@ -43,7 +46,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                 isActive ? "text-teal" : "text-gray-700"
               }`}
             >
-              {category.label}
+              {t(category.id)}
             </span>
           </button>
         );

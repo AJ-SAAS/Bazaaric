@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { listenToMessages, sendMessage, getChat, markChatAsRead, Chat, Message } from "@/lib/chat";
 import { blockUser, reportUser } from "@/lib/moderation";
@@ -12,26 +13,27 @@ import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
 import { Send, MoreVertical, ShieldOff, Flag, Check, X as XIcon } from "lucide-react";
 
-const orderStatusStyles: Record<Order["status"], string> = {
-  offer_pending: "bg-amber-100 text-amber-700",
-  offer_accepted: "bg-green-100 text-green-700",
-  offer_declined: "bg-red-100 text-red-700",
-  completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-red-100 text-red-700",
-};
-
-const orderStatusLabels: Record<Order["status"], string> = {
-  offer_pending: "Pending",
-  offer_accepted: "Accepted",
-  offer_declined: "Declined",
-  completed: "Paid",
-  cancelled: "Cancelled",
-};
-
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
   const chatId = params.id as string;
+  const t = useTranslations("chat");
+
+  const orderStatusStyles: Record<Order["status"], string> = {
+    offer_pending: "bg-amber-100 text-amber-700",
+    offer_accepted: "bg-green-100 text-green-700",
+    offer_declined: "bg-red-100 text-red-700",
+    completed: "bg-gray-100 text-gray-700",
+    cancelled: "bg-red-100 text-red-700",
+  };
+
+  const orderStatusLabels: Record<Order["status"], string> = {
+    offer_pending: t("pending"),
+    offer_accepted: t("accepted"),
+    offer_declined: t("declined"),
+    completed: t("paid"),
+    cancelled: t("cancelled"),
+  };
 
   const { user, loading } = useAuth();
   const [chat, setChat] = useState<Chat | null>(null);
@@ -97,7 +99,7 @@ export default function ChatPage() {
   async function handleBlock() {
     const otherId = otherUserId();
     if (!user || !otherId) return;
-    if (!confirm("Block this user? You won't see their listings or be able to message them.")) return;
+    if (!confirm(t("confirmBlock"))) return;
 
     setBlocking(true);
     try {
@@ -148,11 +150,7 @@ export default function ChatPage() {
 
     const profile = await getPublicProfile(user.uid);
     if (!profile?.stripeChargesEnabled) {
-      if (
-        confirm(
-          "You need to set up payouts before accepting offers, so you can actually get paid. Set up payouts now?"
-        )
-      ) {
+      if (confirm(t("needPayoutsToAccept"))) {
         router.push("/profile");
       }
       return;
@@ -183,7 +181,7 @@ export default function ChatPage() {
       const url = await createCheckoutSession(order.id);
       window.location.href = url;
     } catch (err: any) {
-      alert(err.message || "Couldn't start checkout. Try again.");
+      alert(err.message || t("couldntStartCheckout"));
       setActingOnOrder(null);
     }
   }
@@ -229,7 +227,7 @@ export default function ChatPage() {
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                 >
                   <Flag size={15} />
-                  Report user
+                  {t("reportUser")}
                 </button>
                 <button
                   onClick={() => {
@@ -240,7 +238,7 @@ export default function ChatPage() {
                   className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                 >
                   <ShieldOff size={15} />
-                  Block user
+                  {t("blockUser")}
                 </button>
               </div>
             )}
@@ -250,7 +248,7 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto py-4 space-y-3">
           {messages.length === 0 ? (
             <p className="text-center text-sm text-gray-500 mt-8">
-              Say hello to start the conversation.
+              {t("sayHelloToStart")}
             </p>
           ) : (
             messages.map((msg) => {
@@ -276,7 +274,7 @@ export default function ChatPage() {
 
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-semibold text-gray-900">
-                          Offer: €{order.offerAmount.toFixed(2)}
+                          {t("offer", { amount: order.offerAmount.toFixed(2) })}
                         </p>
                         <span
                           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${orderStatusStyles[order.status]}`}
@@ -286,7 +284,7 @@ export default function ChatPage() {
                       </div>
 
                       <p className="mt-1 text-xs text-gray-500">
-                        Listed at €{order.originalPrice.toFixed(2)}
+                        {t("listedAt", { price: order.originalPrice.toFixed(2) })}
                       </p>
 
                       {isSeller && order.status === "offer_pending" && (
@@ -297,7 +295,7 @@ export default function ChatPage() {
                             className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
                           >
                             <Check size={13} />
-                            Accept
+                            {t("accept")}
                           </button>
                           <button
                             onClick={() => handleDeclineOffer(order)}
@@ -305,7 +303,7 @@ export default function ChatPage() {
                             className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-red-300 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
                           >
                             <XIcon size={13} />
-                            Decline
+                            {t("decline")}
                           </button>
                         </div>
                       )}
@@ -316,12 +314,12 @@ export default function ChatPage() {
                           disabled={actingOnOrder === order.id}
                           className="mt-3 w-full rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
                         >
-                          {actingOnOrder === order.id ? "Redirecting..." : "Pay now"}
+                          {actingOnOrder === order.id ? t("redirecting") : t("payNow")}
                         </button>
                       )}
 
                       {order.paymentStatus === "paid" && (
-                        <p className="mt-3 text-xs font-medium text-teal">Payment received ✓</p>
+                        <p className="mt-3 text-xs font-medium text-teal">{t("paymentReceived")}</p>
                       )}
                     </div>
                   </div>
@@ -385,7 +383,7 @@ export default function ChatPage() {
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type a message..."
+            placeholder={t("typeAMessage")}
             className="flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-gray-400"
           />
           <button
@@ -400,7 +398,7 @@ export default function ChatPage() {
 
       {showReportModal && (
         <ReportModal
-          title="Report this user"
+          title={t("reportThisUser")}
           onClose={() => setShowReportModal(false)}
           onSubmit={handleReportSubmit}
         />

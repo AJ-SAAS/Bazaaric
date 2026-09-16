@@ -10,6 +10,7 @@ import {
   browserSessionPersistence,
 } from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { auth, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -22,6 +23,7 @@ export default function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/profile";
+  const t = useTranslations("auth");
 
   const [mode, setMode] = useState<Mode>("signup");
   const [email, setEmail] = useState("");
@@ -70,7 +72,7 @@ export default function AuthForm() {
     try {
       if (mode === "reset") {
         await sendPasswordResetEmail(auth, email);
-        setMessage("Password reset email sent. Check your inbox.");
+        setMessage(t("resetEmailSent"));
         setLoading(false);
         return;
       }
@@ -91,7 +93,7 @@ export default function AuthForm() {
 
         const available = await isUsernameAvailable(trimmedUsername);
         if (!available) {
-          setMessage("That username is already taken.");
+          setMessage(t("usernameTaken"));
           setUsernameStatus("taken");
           setLoading(false);
           return;
@@ -132,13 +134,13 @@ export default function AuthForm() {
 
   const usernameHint =
     usernameStatus === "checking"
-      ? "Checking availability..."
+      ? t("checkingAvailability")
       : usernameStatus === "available"
-      ? "Username is available"
+      ? t("usernameAvailable")
       : usernameStatus === "taken"
-      ? "That username is already taken"
+      ? t("usernameAlreadyTaken")
       : usernameStatus === "invalid"
-      ? "3-20 characters, letters/numbers/underscores only"
+      ? t("usernameRulesHint")
       : "";
 
   const usernameHintColor =
@@ -161,7 +163,7 @@ export default function AuthForm() {
                 : "bg-white ring-1 ring-black/10 text-gray-600"
             }`}
           >
-            Login
+            {t("login")}
           </button>
 
           <button
@@ -173,14 +175,14 @@ export default function AuthForm() {
                 : "bg-white ring-1 ring-black/10 text-gray-600"
             }`}
           >
-            Sign Up
+            {t("signUp")}
           </button>
         </div>
       )}
 
       {mode === "reset" && (
         <h2 className="mb-6 text-center text-lg font-semibold">
-          Reset your password
+          {t("resetYourPassword")}
         </h2>
       )}
 
@@ -188,7 +190,7 @@ export default function AuthForm() {
         {mode === "signup" && (
           <input
             className="w-full rounded-xl bg-white p-3 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
-            placeholder="Your name"
+            placeholder={t("yourName")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -199,7 +201,7 @@ export default function AuthForm() {
           <div className="min-w-0">
             <input
               className="w-full rounded-xl bg-white p-3 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
-              placeholder="Choose a username"
+              placeholder={t("chooseUsername")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               autoCapitalize="none"
@@ -211,7 +213,7 @@ export default function AuthForm() {
             )}
             {!usernameHint && (
               <p className="mt-1 pl-1 text-xs text-gray-400 break-words">
-                This is what buyers and sellers will see instead of your email.
+                {t("usernameExplainer")}
               </p>
             )}
           </div>
@@ -219,7 +221,7 @@ export default function AuthForm() {
 
         <input
           className="w-full rounded-xl bg-white p-3 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
-          placeholder="Email"
+          placeholder={t("email")}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -229,7 +231,7 @@ export default function AuthForm() {
         {mode !== "reset" && (
           <input
             className="w-full rounded-xl bg-white p-3 text-base ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
-            placeholder="Password"
+            placeholder={t("password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -246,7 +248,7 @@ export default function AuthForm() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="rounded shrink-0"
               />
-              <span className="truncate">Remember me</span>
+              <span className="truncate">{t("rememberMe")}</span>
             </label>
 
             <button
@@ -254,7 +256,7 @@ export default function AuthForm() {
               onClick={() => setMode("reset")}
               className="text-teal font-medium shrink-0"
             >
-              Forgot password?
+              {t("forgotPassword")}
             </button>
           </div>
         )}
@@ -264,12 +266,12 @@ export default function AuthForm() {
           className="w-full rounded-xl bg-teal p-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
         >
           {loading
-            ? "Please wait..."
+            ? t("pleaseWait")
             : mode === "signup"
-            ? "Create account"
+            ? t("createAccount")
             : mode === "reset"
-            ? "Send reset link"
-            : "Login"}
+            ? t("sendResetLink")
+            : t("login")}
         </button>
 
         {mode === "reset" && (
@@ -278,7 +280,7 @@ export default function AuthForm() {
             onClick={() => setMode("login")}
             className="w-full text-center text-sm text-gray-500"
           >
-            Back to login
+            {t("backToLogin")}
           </button>
         )}
       </form>

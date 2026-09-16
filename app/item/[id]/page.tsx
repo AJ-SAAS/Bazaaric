@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   getListing,
   deleteListing,
@@ -26,7 +27,6 @@ import {
   RatingStats,
   Review,
 } from "@/lib/reviews";
-import { getCategoryLabel } from "@/lib/categories";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
 import {
@@ -47,6 +47,8 @@ export default function ItemPage() {
   const id = params.id as string;
 
   const { user } = useAuth();
+  const t = useTranslations("item");
+  const tCategories = useTranslations("categories");
 
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,12 +99,12 @@ export default function ItemPage() {
               return {
                 ...review,
                 reviewerName:
-                  reviewerProfile?.username || "Bazaaric user",
+                  reviewerProfile?.username || t("bazaaricSeller"),
               };
             } catch {
               return {
                 ...review,
-                reviewerName: "Bazaaric user",
+                reviewerName: t("bazaaricSeller"),
               };
             }
           })
@@ -113,7 +115,7 @@ export default function ItemPage() {
       .catch((err) =>
         console.error("FAILED: getReviewsForUser", err)
       );
-  }, [listing]);
+  }, [listing, t]);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -189,7 +191,7 @@ export default function ItemPage() {
     const amount = parseFloat(offerAmount);
 
     if (!amount || amount <= 0) {
-      setOfferError("Enter a valid offer amount.");
+      setOfferError(t("enterValidOffer"));
       return;
     }
 
@@ -233,7 +235,7 @@ export default function ItemPage() {
       router.push(`/chat/${chatId}`);
     } catch (err: any) {
       setOfferError(
-        err.message || "Couldn't send your offer. Try again."
+        err.message || t("couldntSendOffer")
       );
     } finally {
       setSubmittingOffer(false);
@@ -265,7 +267,7 @@ export default function ItemPage() {
       const url = await createCheckoutSession(orderId);
       window.location.href = url;
     } catch (err: any) {
-      alert(err.message || "Couldn't start checkout. Try again.");
+      alert(err.message || t("couldntStartCheckout"));
       setBuyingNow(false);
     }
   }
@@ -286,7 +288,7 @@ export default function ItemPage() {
   async function handleDelete() {
     if (!listing) return;
 
-    if (!confirm("Delete this listing? This can't be undone.")) {
+    if (!confirm(t("confirmDelete"))) {
       return;
     }
 
@@ -353,13 +355,13 @@ export default function ItemPage() {
   if (!listing) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center bg-[#faf9f6]">
-        <p className="text-lg font-semibold">Listing not found</p>
+        <p className="text-lg font-semibold">{t("listingNotFound")}</p>
 
         <button
           onClick={() => router.push("/")}
           className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
         >
-          Back to home
+          {t("backToHome")}
         </button>
       </main>
     );
@@ -368,7 +370,7 @@ export default function ItemPage() {
   const isOwnListing = user?.uid === listing.sellerId;
 
   const sellerDisplayName =
-    sellerProfile?.username || "Bazaaric seller";
+    sellerProfile?.username || t("bazaaricSeller");
 
   const sellerInitial =
     sellerDisplayName.charAt(0).toUpperCase();
@@ -439,7 +441,7 @@ export default function ItemPage() {
                   {listing.status === "sold" && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="rounded-full bg-black/70 px-5 py-2 text-sm font-semibold text-white">
-                        SOLD
+                        {t("sold")}
                       </span>
                     </div>
                   )}
@@ -550,20 +552,20 @@ export default function ItemPage() {
                       <span>·</span>
 
                       <span>
-                        {sellerStats.positivePercent}% positive
+                        {t("percentPositive", { percent: sellerStats.positivePercent })}
                       </span>
 
                       <span>·</span>
 
-                      <span>Seller's other items</span>
+                      <span>{t("sellersOtherItems")}</span>
 
                       <ChevronRight size={12} />
                     </span>
                   ) : (
                     <span className="mt-1 flex items-center gap-1 text-xs text-gray-400">
-                      No reviews yet
+                      {t("noReviewsYet")}
                       <span>·</span>
-                      Seller's other items
+                      {t("sellersOtherItems")}
                       <ChevronRight size={12} />
                     </span>
                   )}
@@ -580,7 +582,7 @@ export default function ItemPage() {
                 >
                   <MessageCircle size={14} />
 
-                  {messaging ? "Opening..." : "Message"}
+                  {messaging ? t("opening") : t("message")}
                 </button>
               )}
             </div>
@@ -593,32 +595,32 @@ export default function ItemPage() {
             {/* Specifications */}
             <div className="mt-6 border-y border-gray-200">
               <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="w-28 shrink-0 text-gray-500">Category</span>
-                <span className="min-w-0 break-words font-medium text-gray-900">{getCategoryLabel(listing.category)}</span>
+                <span className="w-28 shrink-0 text-gray-500">{t("category")}</span>
+                <span className="min-w-0 break-words font-medium text-gray-900">{tCategories(listing.category)}</span>
               </div>
 
               <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="w-28 shrink-0 text-gray-500">Condition</span>
+                <span className="w-28 shrink-0 text-gray-500">{t("condition")}</span>
                 <span className="min-w-0 break-words font-medium text-gray-900">
                   {listing.condition === "new"
-                    ? "Brand new"
+                    ? t("brandNew")
                     : listing.condition === "used"
-                      ? "Used"
-                      : "Not specified"}
+                      ? t("used")
+                      : t("notSpecified")}
                 </span>
               </div>
 
               <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
-                <span className="w-28 shrink-0 text-gray-500">Location</span>
+                <span className="w-28 shrink-0 text-gray-500">{t("location")}</span>
                 <span className="min-w-0 break-words font-medium text-gray-900">{listing.location}</span>
               </div>
 
               <div className="flex items-center gap-4 py-4 text-sm">
-                <span className="w-28 shrink-0 text-gray-500">Available</span>
+                <span className="w-28 shrink-0 text-gray-500">{t("available")}</span>
                 <span className="font-medium text-gray-900">
                   {listing.quantity > 1
-                    ? `${listing.quantity} in stock`
-                    : "1 available"}
+                    ? t("inStock", { count: listing.quantity })
+                    : t("oneAvailable")}
                 </span>
               </div>
             </div>
@@ -632,16 +634,16 @@ export default function ItemPage() {
                 {!sellerCanReceivePayments && listing.status !== "sold" && (
                   <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200">
                     <p className="text-sm font-semibold text-amber-800">
-                      Buyers can't use Buy Now on this listing yet
+                      {t("buyersCantBuyNow")}
                     </p>
                     <p className="mt-1 text-xs text-amber-700">
-                      Set up payouts so buyers can purchase instantly, and so you can accept offers and get paid.
+                      {t("setUpPayoutsDesc")}
                     </p>
                     <Link
                       href="/profile"
                       className="mt-3 inline-block rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-amber-700"
                     >
-                      Set up payouts
+                      {t("setUpPayouts")}
                     </Link>
                   </div>
                 )}
@@ -654,7 +656,7 @@ export default function ItemPage() {
                       }
                       className="w-full rounded-full border border-gray-300 px-6 py-3.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
                     >
-                      Edit listing
+                      {t("editListing")}
                     </button>
 
                     <button
@@ -663,8 +665,8 @@ export default function ItemPage() {
                       className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
                     >
                       {updating
-                        ? "Updating..."
-                        : "Mark as sold"}
+                        ? t("updating")
+                        : t("markAsSold")}
                     </button>
                   </>
                 )}
@@ -674,7 +676,7 @@ export default function ItemPage() {
                   disabled={updating}
                   className="w-full rounded-full border border-red-300 px-6 py-3.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
                 >
-                  Delete listing
+                  {t("deleteListing")}
                 </button>
               </div>
             ) : (
@@ -686,7 +688,7 @@ export default function ItemPage() {
                       disabled={buyingNow}
                       className="w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark disabled:opacity-60"
                     >
-                      {buyingNow ? "Redirecting to checkout..." : "Buy now"}
+                      {buyingNow ? t("redirectingToCheckout") : t("buyNow")}
                     </button>
                   )}
 
@@ -698,7 +700,7 @@ export default function ItemPage() {
                         : "w-full rounded-full bg-teal px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark"
                     }
                   >
-                    Make an offer
+                    {t("makeAnOffer")}
                   </button>
                 </div>
               )
@@ -716,36 +718,29 @@ export default function ItemPage() {
                 />
 
                 <p className="min-w-0 break-words text-xs leading-relaxed text-gray-600">
-                  Payments on Bazaaric are processed securely through
-                  Stripe. A buyer protection fee (shown at checkout)
-                  applies to every purchase. Bazaaric does not verify the
-                  identity or condition claims of individual sellers —
-                  inspect items carefully before confirming receipt, and
-                  use the in-app chat to ask questions before buying. If
-                  something goes wrong with a paid order, you can request
-                  a refund directly from your{" "}
+                  {t("safetyNoticePart1")}{" "}
                   <a href="/offers" className="font-medium underline">
-                    Offers page
+                    {t("offersPage")}
                   </a>{" "}
-                  or contact support. See our{" "}
+                  {t("safetyNoticePart2")}{" "}
                   
                     href="/terms"
                     className="font-medium underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Terms of Service
+                    {t("termsOfService")}
                   </a>{" "}
-                  and{" "}
+                  {t("and")}{" "}
                   
                     href="/refunds"
                     className="font-medium underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Refund Policy
+                    {t("refundPolicy")}
                   </a>{" "}
-                  for full details.
+                  {t("forFullDetails")}
                 </p>
               </div>
             )}
@@ -764,7 +759,7 @@ export default function ItemPage() {
                 className="mt-4 flex items-center gap-1.5 text-xs text-gray-500 transition hover:text-red-600"
               >
                 <Flag size={13} />
-                Report this listing
+                {t("reportListing")}
               </button>
             )}
           </div>
@@ -777,7 +772,7 @@ export default function ItemPage() {
         {listing.description && (
           <div className="mt-12 border-t border-gray-200 pt-8">
             <h2 className="text-lg font-semibold text-gray-950">
-              Description
+              {t("description")}
             </h2>
 
             <p className="mt-3 max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
@@ -792,7 +787,7 @@ export default function ItemPage() {
 
         <div className="mt-10 border-t border-gray-200 pb-4 pt-8">
           <h2 className="text-lg font-semibold text-gray-950">
-            Reviews for {sellerDisplayName}{" "}
+            {t("reviewsFor", { name: sellerDisplayName })}{" "}
             {sellerStats && sellerStats.count > 0
               ? `(${sellerStats.count})`
               : ""}
@@ -800,7 +795,7 @@ export default function ItemPage() {
 
           {sellerReviews.length === 0 ? (
             <p className="mt-3 text-sm text-gray-500">
-              No reviews yet.
+              {t("noReviewsYet")}
             </p>
           ) : (
             <div className="mt-4 max-w-3xl space-y-3">
@@ -851,7 +846,7 @@ export default function ItemPage() {
             href={`/seller/${listing.sellerId}`}
             className="mt-4 inline-block text-sm font-semibold text-teal hover:underline"
           >
-            View all of {sellerDisplayName}'s listings →
+            {t("viewAllListings", { name: sellerDisplayName })} →
           </Link>
         </div>
       </div>
@@ -865,7 +860,7 @@ export default function ItemPage() {
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">
-                Make an offer
+                {t("makeAnOffer")}
               </h3>
 
               <button
@@ -878,7 +873,7 @@ export default function ItemPage() {
             </div>
 
             <p className="mb-4 text-sm text-gray-500">
-              Listed at{" "}
+              {t("listedAt")}{" "}
               <span className="font-semibold text-gray-900">
                 €{listing.price}
               </span>
@@ -918,8 +913,8 @@ export default function ItemPage() {
                 className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
               >
                 {submittingOffer
-                  ? "Sending..."
-                  : "Send offer"}
+                  ? t("sending")
+                  : t("sendOffer")}
               </button>
             </form>
           </div>
@@ -932,7 +927,7 @@ export default function ItemPage() {
 
       {showReportModal && (
         <ReportModal
-          title="Report this listing"
+          title={t("reportThisListing")}
           onClose={() => setShowReportModal(false)}
           onSubmit={handleReportSubmit}
         />

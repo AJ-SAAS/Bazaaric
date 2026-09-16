@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
 import { getUserFavoriteListings, removeFavorite } from "@/lib/favorites";
 import { Listing } from "@/lib/listings";
@@ -12,6 +13,7 @@ import Navbar from "@/components/layout/Navbar";
 export default function FavoritesPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const t = useTranslations("favorites");
 
   const [favorites, setFavorites] = useState<Listing[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
@@ -46,7 +48,7 @@ export default function FavoritesPage() {
       <Navbar />
 
       <div className="mx-auto max-w-md md:max-w-7xl px-4 md:px-8 pt-6 md:pt-10">
-        <h1 className="text-2xl md:text-3xl font-bold">Favorites</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t("title")}</h1>
 
         {favoritesLoading ? (
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
@@ -56,7 +58,7 @@ export default function FavoritesPage() {
           </div>
         ) : favorites.length === 0 ? (
           <p className="mt-6 text-sm text-gray-500">
-            Nothing saved yet — tap the heart on an item to save it here.
+            {t("nothingSavedYet")}
           </p>
         ) : (
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Navbar from "@/components/layout/Navbar";
 import ItemCard from "@/components/listing/ItemCard";
 import { getActiveListingsByUser, Listing } from "@/lib/listings";
@@ -14,6 +15,7 @@ type ReviewWithReviewer = Review & { reviewerName: string };
 export default function SellerPage() {
   const params = useParams();
   const sellerId = params.id as string;
+  const t = useTranslations("seller");
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
@@ -58,9 +60,9 @@ export default function SellerPage() {
         r.map(async (review) => {
           try {
             const reviewerProfile = await getPublicProfile(review.reviewerId);
-            return { ...review, reviewerName: reviewerProfile?.username || "Bazaaric user" };
+            return { ...review, reviewerName: reviewerProfile?.username || t("bazaaricUser") };
           } catch {
-            return { ...review, reviewerName: "Bazaaric user" };
+            return { ...review, reviewerName: t("bazaaricUser") };
           }
         })
       );
@@ -73,7 +75,7 @@ export default function SellerPage() {
     }
 
     load();
-  }, [sellerId]);
+  }, [sellerId, t]);
 
   if (loading) {
     return (
@@ -86,12 +88,12 @@ export default function SellerPage() {
   if (!profile && listings.length === 0 && reviews.length === 0) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-lg font-semibold">Seller not found</p>
+        <p className="text-lg font-semibold">{t("sellerNotFound")}</p>
       </main>
     );
   }
 
-  const storeName = profile?.storeName?.trim() || profile?.username || "Bazaaric seller";
+  const storeName = profile?.storeName?.trim() || profile?.username || t("bazaaricSeller");
   const joinDate = profile?.createdAt?.toDate();
 
   return (
@@ -123,7 +125,9 @@ export default function SellerPage() {
                 {joinDate && (
                   <span className="flex items-center gap-1.5">
                     <CalendarDays size={13} />
-                    Member since {joinDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                    {t("memberSince", {
+                      date: joinDate.toLocaleDateString(undefined, { month: "long", year: "numeric" }),
+                    })}
                   </span>
                 )}
 
@@ -143,7 +147,7 @@ export default function SellerPage() {
                   <span className="font-semibold text-sm">{stats.average.toFixed(1)}</span>
                 </div>
                 <p className="mt-0.5 text-xs text-gray-500">
-                  {stats.positivePercent}% positive · {stats.count} review{stats.count === 1 ? "" : "s"}
+                  {t("percentPositiveReviews", { percent: stats.positivePercent, count: stats.count })}
                 </p>
               </div>
             )}
@@ -158,11 +162,11 @@ export default function SellerPage() {
 
         <section className="mt-8">
           <h2 className="mb-4 text-lg md:text-2xl font-bold break-words">
-            {storeName}'s listings
+            {t("sellersListings", { name: storeName })}
           </h2>
 
           {listings.length === 0 ? (
-            <p className="text-sm text-gray-500">No active listings right now.</p>
+            <p className="text-sm text-gray-500">{t("noActiveListings")}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
               {listings.map((item) => (
@@ -182,11 +186,11 @@ export default function SellerPage() {
 
         <section className="mt-10">
           <h2 className="mb-4 text-lg md:text-2xl font-bold">
-            Reviews {stats && stats.count > 0 ? `(${stats.count})` : ""}
+            {t("reviews")} {stats && stats.count > 0 ? `(${stats.count})` : ""}
           </h2>
 
           {reviews.length === 0 ? (
-            <p className="text-sm text-gray-500">No reviews yet.</p>
+            <p className="text-sm text-gray-500">{t("noReviewsYet")}</p>
           ) : (
             <div className="space-y-3">
               {reviews.map((review) => (

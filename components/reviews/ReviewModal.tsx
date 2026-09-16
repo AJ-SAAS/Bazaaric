@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { X, Star } from "lucide-react";
 import { submitReview } from "@/lib/reviews";
 
@@ -21,6 +22,7 @@ export default function ReviewModal({
   onClose,
   onSubmitted,
 }: ReviewModalProps) {
+  const t = useTranslations("review");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -31,7 +33,7 @@ export default function ReviewModal({
     e.preventDefault();
 
     if (rating === 0) {
-      setError("Pick a star rating first.");
+      setError(t("pickStarRating"));
       return;
     }
 
@@ -42,7 +44,7 @@ export default function ReviewModal({
       await submitReview({ orderId, reviewerId, revieweeId, rating, comment });
       onSubmitted();
     } catch (err: any) {
-      setError(err.message || "Couldn't submit your review. Try again.");
+      setError(err.message || t("couldntSubmitReview"));
     } finally {
       setSubmitting(false);
     }
@@ -52,14 +54,14 @@ export default function ReviewModal({
     <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-lg font-semibold">Leave a review</h3>
+          <h3 className="text-lg font-semibold">{t("leaveAReview")}</h3>
           <button onClick={onClose} disabled={submitting}>
             <X size={20} className="text-gray-500" />
           </button>
         </div>
 
         <p className="text-sm text-gray-500 mb-4 break-words">
-          How was your exchange with <span className="font-semibold">{revieweeName}</span>?
+          {t("howWasYourExchange")} <span className="font-semibold">{revieweeName}</span>?
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,7 +90,7 @@ export default function ReviewModal({
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Optional — say a bit about how it went"
+            placeholder={t("optionalComment")}
             rows={3}
             className="w-full resize-none rounded-xl bg-gray-50 px-4 py-3 text-base ring-1 ring-black/10 outline-none placeholder:text-gray-400"
           />
@@ -100,7 +102,7 @@ export default function ReviewModal({
             disabled={submitting}
             className="w-full rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white transition hover:bg-teal-dark disabled:opacity-60"
           >
-            {submitting ? "Submitting..." : "Submit review"}
+            {submitting ? t("submitting") : t("submitReview")}
           </button>
         </form>
       </div>
