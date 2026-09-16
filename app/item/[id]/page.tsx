@@ -26,6 +26,7 @@ import {
   RatingStats,
   Review,
 } from "@/lib/reviews";
+import { getCategoryLabel } from "@/lib/categories";
 import Navbar from "@/components/layout/Navbar";
 import ReportModal from "@/components/moderation/ReportModal";
 import {
@@ -593,7 +594,7 @@ export default function ItemPage() {
             <div className="mt-6 border-y border-gray-200">
               <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
                 <span className="w-28 shrink-0 text-gray-500">Category</span>
-                <span className="min-w-0 break-words font-medium text-gray-900">{listing.category}</span>
+                <span className="min-w-0 break-words font-medium text-gray-900">{getCategoryLabel(listing.category)}</span>
               </div>
 
               <div className="flex items-center gap-4 border-b border-gray-100 py-4 text-sm">
@@ -727,7 +728,7 @@ export default function ItemPage() {
                     Offers page
                   </a>{" "}
                   or contact support. See our{" "}
-                  <a
+                  
                     href="/terms"
                     className="font-medium underline"
                     target="_blank"
@@ -736,7 +737,7 @@ export default function ItemPage() {
                     Terms of Service
                   </a>{" "}
                   and{" "}
-                  <a
+                  
                     href="/refunds"
                     className="font-medium underline"
                     target="_blank"

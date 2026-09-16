@@ -23,3 +23,12 @@ body {
   background: var(--bg);
   overflow-wrap: anywhere;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

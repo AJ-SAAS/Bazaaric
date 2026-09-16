@@ -6,8 +6,8 @@ import { Plus, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { createListing, updateListing, getListing, uploadPhotos, deletePhotosByUrl } from "@/lib/listings";
 import type { Condition } from "@/lib/listings";
+import { CATEGORIES } from "@/lib/categories";
 
-const categories = ["Fashion", "Electronics", "Home", "Sports", "Kids", "Other"];
 const conditions: { value: Condition; label: string }[] = [
   { value: "new", label: "Brand new" },
   { value: "used", label: "Used" },
@@ -299,8 +299,8 @@ export default function SellPageContent() {
                 className="w-full bg-transparent text-sm outline-none text-gray-900"
               >
                 <option value="" disabled>Select a category</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>
             </div>

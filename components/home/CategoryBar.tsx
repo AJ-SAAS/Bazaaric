@@ -1,28 +1,22 @@
-const categories = [
-  { name: "Fashion", image: "/categories/fashion.jpg", emoji: "👕" },
-  { name: "Electronics", image: "/categories/electronics.jpg", emoji: "📱" },
-  { name: "Home", image: "/categories/home.jpg", emoji: "🏠" },
-  { name: "Sports", image: "/categories/sports.jpg", emoji: "⚽" },
-  { name: "Kids", image: "/categories/kids.jpg", emoji: "🧸" },
-  { name: "Local Shops", image: "/categories/local-shops.jpg", emoji: "🏪" },
-  { name: "Other", image: "/categories/other.jpg", emoji: "✨" },
-];
+"use client";
+
+import { CATEGORIES } from "@/lib/categories";
 
 type CategoryBarProps = {
   selected: string | null;
-  onSelect: (category: string | null) => void;
+  onSelect: (categoryId: string | null) => void;
 };
 
 export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
   return (
     <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 md:gap-6 w-full">
-      {categories.map((category) => {
-        const isActive = selected === category.name;
+      {CATEGORIES.map((category) => {
+        const isActive = selected === category.id;
 
         return (
           <button
-            key={category.name}
-            onClick={() => onSelect(isActive ? null : category.name)}
+            key={category.id}
+            onClick={() => onSelect(isActive ? null : category.id)}
             className="flex w-full flex-col items-center gap-2 active:scale-95 transition"
           >
             <div
@@ -49,7 +43,7 @@ export default function CategoryBar({ selected, onSelect }: CategoryBarProps) {
                 isActive ? "text-teal" : "text-gray-700"
               }`}
             >
-              {category.name}
+              {category.label}
             </span>
           </button>
         );
