@@ -382,14 +382,10 @@ export default function ItemPage() {
       <Navbar />
 
       <div className="mx-auto max-w-[1600px] px-4 pt-6 md:px-8 md:pt-8 lg:px-10">
-        {/* ============================================================
-            FIRST FOLD
-        ============================================================ */}
+        {/* FIRST FOLD */}
 
         <div className="grid min-w-0 gap-8 md:grid-cols-[minmax(0,1.45fr)_minmax(400px,0.95fr)] lg:gap-12 xl:gap-16">
-          {/* ==========================================================
-              IMAGE / GALLERY
-          ========================================================== */}
+          {/* IMAGE / GALLERY */}
 
           <div className="min-w-0">
             <div className="flex items-start gap-3 md:gap-4">
@@ -513,9 +509,7 @@ export default function ItemPage() {
             </div>
           </div>
 
-          {/* ==========================================================
-              DETAILS
-          ========================================================== */}
+          {/* DETAILS */}
 
           <div className="min-w-0 md:pt-1">
             {/* Title */}
@@ -625,9 +619,7 @@ export default function ItemPage() {
               </div>
             </div>
 
-            {/* ========================================================
-                ACTIONS
-            ======================================================== */}
+            {/* ACTIONS */}
 
             {isOwnListing ? (
               <div className="mt-6 space-y-2">
@@ -706,9 +698,7 @@ export default function ItemPage() {
               )
             )}
 
-            {/* ========================================================
-                PAYMENT & SAFETY NOTICE
-            ======================================================== */}
+            {/* PAYMENT & SAFETY NOTICE */}
 
             {!isOwnListing && (
               <div className="mt-6 flex gap-3 border-t border-amber-200 pt-5">
@@ -723,7 +713,7 @@ export default function ItemPage() {
                     {t("offersPage")}
                   </a>{" "}
                   {t("safetyNoticePart2")}{" "}
-                  
+                  <a
                     href="/terms"
                     className="font-medium underline"
                     target="_blank"
@@ -732,7 +722,7 @@ export default function ItemPage() {
                     {t("termsOfService")}
                   </a>{" "}
                   {t("and")}{" "}
-                  
+                  <a
                     href="/refunds"
                     className="font-medium underline"
                     target="_blank"
@@ -765,9 +755,7 @@ export default function ItemPage() {
           </div>
         </div>
 
-        {/* ============================================================
-            BELOW THE FOLD — DESCRIPTION
-        ============================================================ */}
+        {/* BELOW THE FOLD — DESCRIPTION */}
 
         {listing.description && (
           <div className="mt-12 border-t border-gray-200 pt-8">
@@ -781,9 +769,7 @@ export default function ItemPage() {
           </div>
         )}
 
-        {/* ============================================================
-            BELOW THE FOLD — SELLER REVIEWS
-        ============================================================ */}
+        {/* BELOW THE FOLD — SELLER REVIEWS */}
 
         <div className="mt-10 border-t border-gray-200 pb-4 pt-8">
           <h2 className="text-lg font-semibold text-gray-950">
@@ -851,9 +837,7 @@ export default function ItemPage() {
         </div>
       </div>
 
-      {/* ==============================================================
-          MAKE AN OFFER MODAL
-      ============================================================== */}
+      {/* MAKE AN OFFER MODAL */}
 
       {showOfferModal && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 px-4 md:items-center">
@@ -921,9 +905,7 @@ export default function ItemPage() {
         </div>
       )}
 
-      {/* ==============================================================
-          REPORT MODAL
-      ============================================================== */}
+      {/* REPORT MODAL */}
 
       {showReportModal && (
         <ReportModal
