@@ -218,6 +218,8 @@
   "auth": {
     "welcomeTitle": "Laipni lūdzam Bazaaric",
     "welcomeSubtitle": "Pērc un pārdod visā Baltijā",
+    "sellTitle": "Sāc pārdot jau šodien",
+    "sellSubtitle": "Ievieto sludinājumu dažu minūšu laikā un sasniedz pircējus visā Latvijā.",
     "resetEmailSent": "Paroles atiestatīšanas e-pasts nosūtīts. Pārbaudi savu iesūtni.",
     "usernameTaken": "Šis lietotājvārds jau ir aizņemts.",
     "checkingAvailability": "Pārbauda pieejamību...",

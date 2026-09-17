@@ -218,6 +218,8 @@
   "auth": {
     "welcomeTitle": "Welcome to Bazaaric",
     "welcomeSubtitle": "Buy and sell across the Baltics",
+    "sellTitle": "Start selling today",
+    "sellSubtitle": "List your item in minutes and reach buyers across Latvia.",
     "resetEmailSent": "Password reset email sent. Check your inbox.",
     "usernameTaken": "That username is already taken.",
     "checkingAvailability": "Checking availability...",
