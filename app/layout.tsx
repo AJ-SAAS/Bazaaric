@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import Footer from "@/components/layout/Footer";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,6 +26,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html lang={locale}>
@@ -40,7 +41,7 @@ export default async function RootLayout({
           flex-col
         `}
       >
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <AuthProvider>
             <div className="flex-1">{children}</div>
             <Footer />
