@@ -46,7 +46,7 @@ export default function OffersPage() {
   } | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/auth");
+    if (!loading && !user) router.push("/register");
   }, [user, loading, router]);
 
   useEffect(() => {

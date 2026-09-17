@@ -45,6 +45,11 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
     return () => unsubscribe();
   }, [user]);
 
+  const favoritesHref = user ? "/favorites" : "/register?redirect=/favorites";
+  const inboxHref = user ? "/inbox" : "/register?redirect=/inbox";
+  const sellHref = user ? "/sell" : "/register?redirect=/sell";
+  const profileHref = user ? "/profile" : "/register?redirect=/profile";
+
   return (
     <>
       {/* Mobile top header — logo, search + button, menu */}
@@ -112,7 +117,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               {t("home")}
             </Link>
             <Link
-              href="/favorites"
+              href={favoritesHref}
               onClick={() => setMenuOpen(false)}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
@@ -120,7 +125,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               {t("favorites")}
             </Link>
             <Link
-              href="/inbox"
+              href={inboxHref}
               onClick={() => setMenuOpen(false)}
               className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
@@ -133,28 +138,17 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               )}
             </Link>
 
-            {user ? (
-              <Link
-                href="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                <User size={18} />
-                {t("profile")}
-              </Link>
-            ) : (
-              <Link
-                href="/auth"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                <User size={18} />
-                {t("profile")}
-              </Link>
-            )}
+            <Link
+              href={profileHref}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <User size={18} />
+              {t("profile")}
+            </Link>
 
             <Link
-              href="/sell"
+              href={sellHref}
               onClick={() => setMenuOpen(false)}
               className="flex items-center justify-center gap-2 rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-dark mt-2"
             >
@@ -198,13 +192,13 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             {t("home")}
           </Link>
 
-          <Link href="/favorites" className="flex flex-col items-center gap-1">
+          <Link href={favoritesHref} className="flex flex-col items-center gap-1">
             <Heart size={21} />
             {t("favorites")}
           </Link>
 
           <Link
-            href="/sell"
+            href={sellHref}
             className="
               -mt-7
               flex
@@ -221,7 +215,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             <Plus size={28} />
           </Link>
 
-          <Link href="/inbox" className="relative flex flex-col items-center gap-1">
+          <Link href={inboxHref} className="relative flex flex-col items-center gap-1">
             <MessageCircle size={21} />
             {t("inbox")}
             {unreadCount > 0 && (
@@ -231,17 +225,10 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             )}
           </Link>
 
-          {user ? (
-            <Link href="/profile" className="flex flex-col items-center gap-1">
-              <User size={21} />
-              {t("profile")}
-            </Link>
-          ) : (
-            <Link href="/auth" className="flex flex-col items-center gap-1">
-              <User size={21} />
-              {t("profile")}
-            </Link>
-          )}
+          <Link href={profileHref} className="flex flex-col items-center gap-1">
+            <User size={21} />
+            {t("profile")}
+          </Link>
         </div>
       </nav>
 
@@ -303,11 +290,11 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
               <Home size={18} />
               {t("home")}
             </Link>
-            <Link href="/favorites" className="flex items-center gap-2 hover:text-black">
+            <Link href={favoritesHref} className="flex items-center gap-2 hover:text-black">
               <Heart size={18} />
               {t("favorites")}
             </Link>
-            <Link href="/inbox" className="relative flex items-center gap-2 hover:text-black">
+            <Link href={inboxHref} className="relative flex items-center gap-2 hover:text-black">
               <MessageCircle size={18} />
               {t("inbox")}
               {unreadCount > 0 && (
@@ -329,7 +316,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
 
             {!user && (
               <Link
-                href="/auth"
+                href="/register"
                 className="
                   rounded-full
                   border
@@ -348,7 +335,7 @@ export default function Navbar({ searchValue = "", onSearchChange }: NavbarProps
             )}
 
             <Link
-              href="/sell"
+              href={sellHref}
               className="
                 flex
                 items-center

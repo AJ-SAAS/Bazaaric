@@ -51,7 +51,7 @@ export default function ChatPage() {
   const [actingOnOrder, setActingOnOrder] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/auth");
+    if (!loading && !user) router.push("/register");
   }, [user, loading, router]);
 
   useEffect(() => {

@@ -143,7 +143,7 @@ export default function Home() {
           </div>
 
           <Link
-            href={user ? "/sell" : "/auth"}
+            href={user ? "/sell" : "/register"}
             className="inline-flex w-fit items-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-black/80"
           >
             {user ? "Start selling" : "Start now"}

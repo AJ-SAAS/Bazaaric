@@ -72,7 +72,7 @@ export default function ProfilePageContent() {
   const [sellerCountry, setSellerCountry] = useState("LV");
 
   useEffect(() => {
-    if (!loading && !user) router.push("/auth");
+    if (!loading && !user) router.push("/register");
   }, [user, loading, router]);
 
   useEffect(() => {

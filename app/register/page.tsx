@@ -44,7 +44,7 @@ export default function SellPageContent() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/auth?redirect=/sell");
+      router.push("/register?redirect=/sell");
     }
   }, [authLoading, user, router]);
 

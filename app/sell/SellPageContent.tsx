@@ -177,7 +177,7 @@ export default function SellPageContent() {
       <main className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-lg font-semibold">{t("needAccount")}</p>
         <button
-          onClick={() => router.push("/auth")}
+          onClick={() => router.push("/register")}
           className="rounded-full bg-teal px-6 py-2.5 text-sm font-semibold text-white"
         >
           {t("logInOrSignUp")}

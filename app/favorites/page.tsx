@@ -19,7 +19,7 @@ export default function FavoritesPage() {
   const [favoritesLoading, setFavoritesLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) router.push("/auth");
+    if (!loading && !user) router.push("/register");
   }, [user, loading, router]);
 
   useEffect(() => {

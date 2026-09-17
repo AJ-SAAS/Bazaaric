@@ -17,7 +17,7 @@ export default function InboxPage() {
   const [chatsError, setChatsError] = useState("");
 
   useEffect(() => {
-    if (!loading && !user) router.push("/auth");
+    if (!loading && !user) router.push("/register");
   }, [user, loading, router]);
 
   useEffect(() => {
