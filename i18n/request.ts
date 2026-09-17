@@ -16,7 +16,7 @@ export default getRequestConfig(async () => {
   const locale =
     cookieLocale && cookieLocale in messagesByLocale
       ? (cookieLocale as keyof typeof messagesByLocale)
-      : "en";
+      : "lv";
 
   return {
     locale,
