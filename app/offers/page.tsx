@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth-context";
-import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, Order } from "@/lib/orders";
+import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, addTrackingNumber, Order, Carrier } from "@/lib/orders";
 import { getOrCreateChat } from "@/lib/chat";
 import { hasReviewedOrder } from "@/lib/reviews";
 import { getPublicProfile } from "@/lib/profiles";
@@ -12,6 +12,13 @@ import { createCheckoutSession, requestRefund } from "@/lib/payments";
 import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
+import { Package, Copy, Check } from "lucide-react";
+
+const CARRIER_TRACK_URLS: Partial<Record<Carrier, (trackingNumber: string) => string>> = {
+  omniva: (n) => `https://www.omniva.lv/eng/track?barcode=${encodeURIComponent(n)}`,
+  dpd: (n) => `https://tracking.dpd.de/status/en_US/parcel/${encodeURIComponent(n)}`,
+  latvijas_pasts: (n) => `https://www.pasts.lv/lv/uzzinas/izsekosana/`,
+};
 
 export default function OffersPage() {
   const { user, loading } = useAuth();
@@ -34,6 +41,13 @@ export default function OffersPage() {
     cancelled: t("cancelled"),
   };
 
+  const carrierLabels: Record<Carrier, string> = {
+    omniva: "Omniva",
+    dpd: "DPD",
+    latvijas_pasts: t("latvijasPasts"),
+    other: t("otherCarrier"),
+  };
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState("");
@@ -44,6 +58,12 @@ export default function OffersPage() {
     revieweeId: string;
     revieweeName: string;
   } | null>(null);
+
+  const [trackingFormOrderId, setTrackingFormOrderId] = useState<string | null>(null);
+  const [trackingNumberInput, setTrackingNumberInput] = useState("");
+  const [carrierInput, setCarrierInput] = useState<Carrier>("omniva");
+  const [savingTracking, setSavingTracking] = useState(false);
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push("/register");
@@ -179,6 +199,42 @@ export default function OffersPage() {
     setReviewTarget(null);
   }
 
+  function openTrackingForm(order: Order) {
+    setTrackingFormOrderId(order.id);
+    setTrackingNumberInput(order.trackingNumber || "");
+    setCarrierInput(order.carrier || "omniva");
+  }
+
+  async function handleSaveTracking(order: Order) {
+    const trimmed = trackingNumberInput.trim();
+    if (!trimmed) return;
+
+    setSavingTracking(true);
+    try {
+      await addTrackingNumber(order.id, trimmed, carrierInput);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id
+            ? { ...o, trackingNumber: trimmed, carrier: carrierInput }
+            : o
+        )
+      );
+      setTrackingFormOrderId(null);
+    } catch (err: any) {
+      alert(err.message || t("couldntSaveTracking"));
+    } finally {
+      setSavingTracking(false);
+    }
+  }
+
+  function handleCopyTracking(order: Order) {
+    if (!order.trackingNumber) return;
+    navigator.clipboard.writeText(order.trackingNumber).then(() => {
+      setCopiedOrderId(order.id);
+      setTimeout(() => setCopiedOrderId(null), 2000);
+    });
+  }
+
   if (loading || !user) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -199,6 +255,11 @@ export default function OffersPage() {
     const isSeller = order.sellerId === user!.uid;
     const alreadyReviewed = reviewedOrderIds.has(order.id);
     const canRefund = order.paymentStatus === "paid";
+    const isPaidOrCompleted = order.paymentStatus === "paid" || order.status === "completed";
+    const showTrackingForm = trackingFormOrderId === order.id;
+    const trackUrl = order.trackingNumber && order.carrier
+      ? CARRIER_TRACK_URLS[order.carrier]?.(order.trackingNumber)
+      : undefined;
 
     return (
       <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
@@ -234,6 +295,101 @@ export default function OffersPage() {
             {statusLabels[order.status]}
           </span>
         </div>
+
+        {/* Shipping status — buyer view */}
+        {!isSeller && isPaidOrCompleted && (
+          <div className="mt-3 rounded-xl bg-gray-50 p-3">
+            {order.trackingNumber ? (
+              <div className="flex items-start gap-2">
+                <Package size={16} className="mt-0.5 shrink-0 text-teal" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-gray-900">
+                    {t("shippedVia", { carrier: order.carrier ? carrierLabels[order.carrier] : t("otherCarrier") })}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-xs font-mono text-gray-700 break-all">{order.trackingNumber}</span>
+                    <button
+                      onClick={() => handleCopyTracking(order)}
+                      className="shrink-0 text-gray-400 hover:text-gray-600"
+                      aria-label={t("copyTracking")}
+                    >
+                      {copiedOrderId === order.id ? <Check size={13} /> : <Copy size={13} />}
+                    </button>
+                  </div>
+                  {trackUrl && (
+                    <a
+                      href={trackUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1.5 inline-block text-xs font-semibold text-teal hover:underline"
+                    >
+                      {t("trackPackage")} →
+                    </a>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="flex items-center gap-2 text-xs text-gray-500">
+                <Package size={16} className="shrink-0" />
+                {t("sellerPreparingOrder")}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Tracking entry/edit — seller view */}
+        {isSeller && isPaidOrCompleted && (
+          <div className="mt-3">
+            {showTrackingForm ? (
+              <div className="rounded-xl bg-gray-50 p-3 space-y-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select
+                    value={carrierInput}
+                    onChange={(e) => setCarrierInput(e.target.value as Carrier)}
+                    className="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                  >
+                    <option value="omniva">Omniva</option>
+                    <option value="dpd">DPD</option>
+                    <option value="latvijas_pasts">{t("latvijasPasts")}</option>
+                    <option value="other">{t("otherCarrier")}</option>
+                  </select>
+
+                  <input
+                    type="text"
+                    value={trackingNumberInput}
+                    onChange={(e) => setTrackingNumberInput(e.target.value)}
+                    placeholder={t("trackingNumberPlaceholder")}
+                    className="flex-1 rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSaveTracking(order)}
+                    disabled={savingTracking || !trackingNumberInput.trim()}
+                    className="rounded-full bg-teal px-4 py-1.5 text-xs font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
+                  >
+                    {savingTracking ? t("saving") : t("saveTracking")}
+                  </button>
+                  <button
+                    onClick={() => setTrackingFormOrderId(null)}
+                    className="rounded-full border border-gray-300 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    {t("cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => openTrackingForm(order)}
+                className="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                <Package size={13} />
+                {order.trackingNumber ? t("updateTracking") : t("addTracking")}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="mt-3 flex flex-wrap gap-2">
           <button

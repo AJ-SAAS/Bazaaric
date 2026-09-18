@@ -323,7 +323,18 @@
     "reviewed": "Оценено ✓",
     "leaveAReview": "Оставить отзыв",
     "loading": "Загрузка...",
-    "nothingHereYet": "Здесь пока ничего нет."
+    "nothingHereYet": "Здесь пока ничего нет.",
+    "latvijasPasts": "Latvijas Pasts",
+    "otherCarrier": "Другой перевозчик",
+    "shippedVia": "Отправлено через {carrier}",
+    "copyTracking": "Скопировать номер отслеживания",
+    "trackPackage": "Отследить посылку",
+    "sellerPreparingOrder": "Продавец готовит твой заказ",
+    "addTracking": "Добавить номер отслеживания",
+    "updateTracking": "Обновить номер отслеживания",
+    "trackingNumberPlaceholder": "Номер отслеживания",
+    "saveTracking": "Сохранить",
+    "couldntSaveTracking": "Не удалось сохранить номер отслеживания. Попробуй ещё раз."
   },
   "review": {
     "pickStarRating": "Сначала выбери оценку в звёздах.",

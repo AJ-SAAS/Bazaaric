@@ -323,7 +323,18 @@
     "reviewed": "Reviewed ✓",
     "leaveAReview": "Leave a review",
     "loading": "Loading...",
-    "nothingHereYet": "Nothing here yet."
+    "nothingHereYet": "Nothing here yet.",
+    "latvijasPasts": "Latvijas Pasts",
+    "otherCarrier": "Other carrier",
+    "shippedVia": "Shipped via {carrier}",
+    "copyTracking": "Copy tracking number",
+    "trackPackage": "Track package",
+    "sellerPreparingOrder": "Seller is preparing your order",
+    "addTracking": "Add tracking number",
+    "updateTracking": "Update tracking number",
+    "trackingNumberPlaceholder": "Tracking number",
+    "saveTracking": "Save",
+    "couldntSaveTracking": "Couldn't save tracking number. Try again."
   },
   "review": {
     "pickStarRating": "Pick a star rating first.",

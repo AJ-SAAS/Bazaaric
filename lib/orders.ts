@@ -20,6 +20,8 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
+export type Carrier = "omniva" | "dpd" | "latvijas_pasts" | "other";
+
 export type Order = {
   id: string;
   listingId: string;
@@ -36,6 +38,9 @@ export type Order = {
   isDirect: boolean; // true = Buy Now purchase, false/undefined = negotiated offer
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
+  trackingNumber?: string;
+  carrier?: Carrier;
+  shippedAt?: Timestamp | null;
 };
 
 type CreateOfferInput = {
@@ -96,6 +101,24 @@ export async function declineOffer(orderId: string) {
 // over. This is what unlocks leaving a review for this order.
 export async function completeOrder(orderId: string) {
   await updateOrderStatus(orderId, "completed");
+}
+
+// Seller adds (or updates) a tracking number. Only the seller should ever
+// call this — enforced by Firestore rules, not by this function itself.
+// Setting shippedAt only on first save (not on later edits) would need a
+// read-before-write; instead we just always stamp "now" on save, which is
+// fine since sellers add tracking once shipped, not before.
+export async function addTrackingNumber(
+  orderId: string,
+  trackingNumber: string,
+  carrier: Carrier
+) {
+  await updateDoc(doc(db, "orders", orderId), {
+    trackingNumber: trackingNumber.trim(),
+    carrier,
+    shippedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function getOrder(orderId: string): Promise<Order | null> {

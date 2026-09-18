@@ -323,7 +323,18 @@
     "reviewed": "Novērtēts ✓",
     "leaveAReview": "Atstāt atsauksmi",
     "loading": "Ielādē...",
-    "nothingHereYet": "Šeit vēl nekā nav."
+    "nothingHereYet": "Šeit vēl nekā nav.",
+    "latvijasPasts": "Latvijas Pasts",
+    "otherCarrier": "Cits pārvadātājs",
+    "shippedVia": "Nosūtīts ar {carrier}",
+    "copyTracking": "Kopēt izsekošanas numuru",
+    "trackPackage": "Izsekot sūtījumu",
+    "sellerPreparingOrder": "Pārdevējs gatavo tavu pasūtījumu",
+    "addTracking": "Pievienot izsekošanas numuru",
+    "updateTracking": "Atjaunināt izsekošanas numuru",
+    "trackingNumberPlaceholder": "Izsekošanas numurs",
+    "saveTracking": "Saglabāt",
+    "couldntSaveTracking": "Neizdevās saglabāt izsekošanas numuru. Mēģini vēlreiz."
   },
   "review": {
     "pickStarRating": "Vispirms izvēlies zvaigžņu vērtējumu.",
