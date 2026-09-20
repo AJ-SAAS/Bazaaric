@@ -30,7 +30,7 @@ export default function Home() {
   const heroSlides: Slide[] = useMemo(
     () => [
       {
-        image: "/hero/slide-1.jpg",
+        image: "/hero/slide-1.png",
         headline: tHero("slide1Headline"),
         subtext: tHero("slide1Subtext"),
         ctaText: tHero("slide1Cta"),
@@ -44,7 +44,7 @@ export default function Home() {
         ctaHref: "/",
       },
       {
-        image: "/hero/slide-3.jpg",
+        image: "/hero/slide-3.png",
         headline: tHero("slide3Headline"),
         subtext: tHero("slide3Subtext"),
         ctaText: tHero("slide3Cta"),
