@@ -15,13 +15,13 @@ export type Category = {
 };
 
 export const CATEGORIES: Category[] = [
-  { id: "fashion", label: "Fashion", emoji: "👕", image: "/categories/fashion.jpg" },
-  { id: "electronics", label: "Electronics", emoji: "📱", image: "/categories/electronics.jpg" },
-  { id: "home", label: "Home", emoji: "🏠", image: "/categories/home.jpg" },
-  { id: "sports", label: "Sports", emoji: "⚽", image: "/categories/sports.jpg" },
-  { id: "kids", label: "Kids", emoji: "🧸", image: "/categories/kids.jpg" },
-  { id: "local_shops", label: "Local Shops", emoji: "🏪", image: "/categories/local-shops.jpg" },
-  { id: "other", label: "Other", emoji: "✨", image: "/categories/other.jpg" },
+  { id: "fashion", label: "Fashion", emoji: "👕", image: "/categories/fashion.png" },
+  { id: "electronics", label: "Electronics", emoji: "📱", image: "/categories/electronics.png" },
+  { id: "home", label: "Home", emoji: "🏠", image: "/categories/home.png" },
+  { id: "sports", label: "Sports", emoji: "⚽", image: "/categories/sports.png" },
+  { id: "kids", label: "Kids", emoji: "🧸", image: "/categories/kids.png" },
+  { id: "local_shops", label: "Local Shops", emoji: "🏪", image: "/categories/local-shops.png" },
+  { id: "other", label: "Other", emoji: "✨", image: "/categories/other.png" },
 ];
 
 export function getCategoryLabel(id: string): string {
