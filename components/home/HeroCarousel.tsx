@@ -44,7 +44,7 @@ export default function HeroCarousel({ slides, autoplayMs = 6000 }: HeroCarousel
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-black/25" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
 
       <div className="relative z-10 flex h-full items-center px-6 md:px-16">
         <div className="max-w-sm md:max-w-md text-white">
