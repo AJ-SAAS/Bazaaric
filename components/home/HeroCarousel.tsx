@@ -35,32 +35,47 @@ export default function HeroCarousel({ slides, autoplayMs = 4000 }: HeroCarousel
   }, [next, autoplayMs, slides.length]);
 
   if (slides.length === 0) return null;
-  const slide = slides[index];
 
   return (
     <section className="relative h-[360px] md:h-[420px] overflow-hidden rounded-none md:rounded-2xl md:mx-8 md:mt-6">
-      <img
-        src={slide.image}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
-
-      <div className="relative z-10 flex h-full items-center px-6 md:px-16">
-        <div className="max-w-sm md:max-w-md text-white">
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-tight">
-            {slide.headline}
-          </h1>
-          <p className="mt-3 text-sm md:text-base text-white/90">
-            {slide.subtext}
-          </p>
-          <Link
-            href={slide.ctaHref}
-            className="mt-6 inline-block rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-gray-100"
+      <div
+        className="flex h-full transition-transform duration-700 ease-in-out"
+        style={{
+          width: `${slides.length * 100}%`,
+          transform: `translateX(-${index * (100 / slides.length)}%)`,
+        }}
+      >
+        {slides.map((slide, i) => (
+          <div
+            key={i}
+            className="relative h-full shrink-0"
+            style={{ width: `${100 / slides.length}%` }}
           >
-            {slide.ctaText}
-          </Link>
-        </div>
+            <img
+              src={slide.image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
+
+            <div className="relative z-10 flex h-full items-center px-6 md:px-16">
+              <div className="max-w-sm md:max-w-md text-white">
+                <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-tight">
+                  {slide.headline}
+                </h1>
+                <p className="mt-3 text-sm md:text-base text-white/90">
+                  {slide.subtext}
+                </p>
+                <Link
+                  href={slide.ctaHref}
+                  className="mt-6 inline-block rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-gray-100"
+                >
+                  {slide.ctaText}
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {slides.length > 1 && (
