@@ -17,7 +17,7 @@ type HeroCarouselProps = {
   autoplayMs?: number;
 };
 
-export default function HeroCarousel({ slides, autoplayMs = 6000 }: HeroCarouselProps) {
+export default function HeroCarousel({ slides, autoplayMs = 4000 }: HeroCarouselProps) {
   const [index, setIndex] = useState(0);
 
   const next = useCallback(() => {
@@ -38,7 +38,7 @@ export default function HeroCarousel({ slides, autoplayMs = 6000 }: HeroCarousel
   const slide = slides[index];
 
   return (
-    <section className="relative h-[360px] md:h-[480px] overflow-hidden rounded-none md:rounded-2xl md:mx-8 md:mt-6">
+    <section className="relative h-[360px] md:h-[420px] overflow-hidden rounded-none md:rounded-2xl md:mx-8 md:mt-6">
       <img
         src={slide.image}
         alt=""
