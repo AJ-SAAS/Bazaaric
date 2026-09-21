@@ -37,13 +37,6 @@ export default function Home() {
         ctaHref: "/sell",
       },
       {
-        image: "/hero/slide-2.png",
-        headline: tHero("slide2Headline"),
-        subtext: tHero("slide2Subtext"),
-        ctaText: tHero("slide2Cta"),
-        ctaHref: "/",
-      },
-      {
         image: "/hero/slide-3.png",
         headline: tHero("slide3Headline"),
         subtext: tHero("slide3Subtext"),
@@ -55,6 +48,13 @@ export default function Home() {
         headline: tHero("slide4Headline"),
         subtext: tHero("slide4Subtext"),
         ctaText: tHero("slide4Cta"),
+        ctaHref: "/",
+      },
+      {
+        image: "/hero/slide-2.png",
+        headline: tHero("slide2Headline"),
+        subtext: tHero("slide2Subtext"),
+        ctaText: tHero("slide2Cta"),
         ctaHref: "/",
       },
     ],
