@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type Slide = {
   image: string;
+  mobileImage?: string;
   headline: string;
   subtext: string;
   ctaText: string;
@@ -51,11 +52,16 @@ export default function HeroCarousel({ slides, autoplayMs = 4000 }: HeroCarousel
             className="relative h-full shrink-0"
             style={{ width: `${100 / slides.length}%` }}
           >
-            <img
-              src={slide.image}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            <picture>
+              {slide.mobileImage && (
+                <source media="(max-width: 767px)" srcSet={slide.mobileImage} />
+              )}
+              <img
+                src={slide.image}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </picture>
             <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
 
             <div className="relative z-10 flex h-full items-center px-6 md:px-16">
