@@ -37,7 +37,7 @@ export default function Home() {
         ctaHref: "/sell",
       },
       {
-        image: "/hero/slide-2.jpg",
+        image: "/hero/slide-2.png",
         headline: tHero("slide2Headline"),
         subtext: tHero("slide2Subtext"),
         ctaText: tHero("slide2Cta"),
@@ -51,7 +51,7 @@ export default function Home() {
         ctaHref: "/",
       },
       {
-        image: "/hero/slide-4.jpg",
+        image: "/hero/slide-4.png",
         headline: tHero("slide4Headline"),
         subtext: tHero("slide4Subtext"),
         ctaText: tHero("slide4Cta"),
