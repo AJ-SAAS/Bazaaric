@@ -39,7 +39,7 @@ export default function Home() {
       },
       {
         image: "/hero/slide-4.png",
-        mobileImage: "/hero/slide-4-mobile.png",
+        mobileImage: "/hero/slide-3-mobile.png",
         headline: tHero("slide4Headline"),
         subtext: tHero("slide4Subtext"),
         ctaText: tHero("slide4Cta"),
@@ -47,7 +47,7 @@ export default function Home() {
       },
       {
         image: "/hero/slide-3.png",
-        mobileImage: "/hero/slide-3-mobile.png",
+        mobileImage: "/hero/slide-2-mobile.png",
         headline: tHero("slide3Headline"),
         subtext: tHero("slide3Subtext"),
         ctaText: tHero("slide3Cta"),
@@ -55,7 +55,7 @@ export default function Home() {
       },
       {
         image: "/hero/slide-2.png",
-        mobileImage: "/hero/slide-2-mobile.png",
+        mobileImage: "/hero/slide-4-mobile.png",
         headline: tHero("slide2Headline"),
         subtext: tHero("slide2Subtext"),
         ctaText: tHero("slide2Cta"),
