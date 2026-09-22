@@ -20,6 +20,8 @@ const CARRIER_TRACK_URLS: Partial<Record<Carrier, (trackingNumber: string) => st
   latvijas_pasts: (n) => `https://www.pasts.lv/lv/uzzinas/izsekosana/`,
 };
 
+type RefundReason = "not_received" | "not_as_described" | "changed_mind";
+
 export default function OffersPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -66,6 +68,10 @@ export default function OffersPage() {
   const [carrierInput, setCarrierInput] = useState<Carrier>("omniva");
   const [savingTracking, setSavingTracking] = useState(false);
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
+
+  const [refundModalOrder, setRefundModalOrder] = useState<Order | null>(null);
+  const [refundReasonInput, setRefundReasonInput] = useState<RefundReason>("not_received");
+  const [refundDetailsInput, setRefundDetailsInput] = useState("");
 
   useEffect(() => {
     if (!loading && !user) router.push("/register");
@@ -148,19 +154,25 @@ export default function OffersPage() {
     }
   }
 
-  async function handleRequestRefund(order: Order) {
-    if (!confirm(t("confirmRequestRefund"))) {
-      return;
-    }
+  function openRefundModal(order: Order) {
+    setRefundModalOrder(order);
+    setRefundReasonInput("not_received");
+    setRefundDetailsInput("");
+  }
 
-    setActingOn(order.id);
+  async function handleSubmitRefundRequest() {
+    if (!refundModalOrder) return;
+
+    const orderId = refundModalOrder.id;
+    const reason = `${refundReasonInput}${refundDetailsInput ? `: ${refundDetailsInput}` : ""}`;
+
+    setActingOn(orderId);
     try {
-      await requestRefund(order.id);
+      await requestRefund(orderId, reason);
       setOrders((prev) =>
-        prev.map((o) =>
-          o.id === order.id ? { ...o, status: "refund_requested" } : o
-        )
+        prev.map((o) => (o.id === orderId ? { ...o, status: "refund_requested" } : o))
       );
+      setRefundModalOrder(null);
     } catch (err: any) {
       alert(err.message || t("couldntRequestRefund"));
     } finally {
@@ -290,8 +302,8 @@ export default function OffersPage() {
   function OrderRow({ order }: { order: Order }) {
     const isSeller = order.sellerId === user!.uid;
     const alreadyReviewed = reviewedOrderIds.has(order.id);
-    const canRequestRefund = !isSeller && order.paymentStatus === "paid" && order.status === "completed";
-    const isPaidOrCompleted = order.paymentStatus === "paid" || order.status === "completed" || order.status === "refund_requested";
+    const canRequestRefund = !isSeller && order.paymentStatus === "paid";
+    const isPaidOrCompleted = order.paymentStatus === "paid" || order.status === "completed";
     const showTrackingForm = trackingFormOrderId === order.id;
     const trackUrl = order.trackingNumber && order.carrier
       ? CARRIER_TRACK_URLS[order.carrier]?.(order.trackingNumber)
@@ -339,7 +351,7 @@ export default function OffersPage() {
               {t("buyerRequestedRefund")}
             </p>
             {order.refundReason && (
-              <p className="mt-1 text-xs text-orange-700">"{order.refundReason}"</p>
+              <p className="mt-1 text-xs text-orange-700">&quot;{order.refundReason}&quot;</p>
             )}
             <div className="mt-2 flex gap-2">
               <button
@@ -390,7 +402,7 @@ export default function OffersPage() {
                     </button>
                   </div>
                   {trackUrl && (
-                    
+                    <a
                       href={trackUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -513,11 +525,11 @@ export default function OffersPage() {
 
           {canRequestRefund && (
             <button
-              onClick={() => handleRequestRefund(order)}
+              onClick={() => openRefundModal(order)}
               disabled={actingOn === order.id}
               className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              {actingOn === order.id ? t("processing") : t("requestRefund")}
+              {t("requestRefund")}
             </button>
           )}
 
@@ -590,6 +602,54 @@ export default function OffersPage() {
           onClose={() => setReviewTarget(null)}
           onSubmitted={handleReviewSubmitted}
         />
+      )}
+
+      {refundModalOrder && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 px-4 md:items-center">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold">{t("requestRefund")}</h3>
+
+            <p className="mt-2 text-sm text-gray-500">{t("whyRequestingRefund")}</p>
+
+            <div className="mt-3 space-y-2">
+              {(["not_received", "not_as_described", "changed_mind"] as const).map((reason) => (
+                <label key={reason} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="refundReason"
+                    checked={refundReasonInput === reason}
+                    onChange={() => setRefundReasonInput(reason)}
+                  />
+                  {t(`refundReason_${reason}`)}
+                </label>
+              ))}
+            </div>
+
+            <textarea
+              value={refundDetailsInput}
+              onChange={(e) => setRefundDetailsInput(e.target.value)}
+              placeholder={t("addDetailsOptional")}
+              className="mt-3 w-full rounded-xl bg-gray-50 px-3 py-2 text-sm ring-1 ring-black/10 outline-none focus:ring-2 focus:ring-teal"
+              rows={3}
+            />
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleSubmitRefundRequest}
+                disabled={actingOn === refundModalOrder.id}
+                className="flex-1 rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white hover:bg-teal-dark disabled:opacity-60"
+              >
+                {actingOn === refundModalOrder.id ? t("sending") : t("submitRequest")}
+              </button>
+              <button
+                onClick={() => setRefundModalOrder(null)}
+                className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
