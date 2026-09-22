@@ -290,7 +290,8 @@
     "payNow": "Pay now",
     "paymentReceived": "Payment received ✓",
     "typeAMessage": "Type a message...",
-    "reportThisUser": "Report this user"
+    "reportThisUser": "Report this user",
+    "refundRequested": "Refund requested"
   },
   "offers": {
     "pending": "Pending",

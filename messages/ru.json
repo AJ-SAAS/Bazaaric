@@ -290,7 +290,8 @@
     "payNow": "Оплатить сейчас",
     "paymentReceived": "Платёж получен ✓",
     "typeAMessage": "Напиши сообщение...",
-    "reportThisUser": "Пожаловаться на этого пользователя"
+    "reportThisUser": "Пожаловаться на этого пользователя",
+    "refundRequested": "Запрошен возврат"
   },
   "offers": {
     "pending": "Ожидает",

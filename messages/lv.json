@@ -290,7 +290,8 @@
     "payNow": "Maksāt tagad",
     "paymentReceived": "Maksājums saņemts ✓",
     "typeAMessage": "Raksti ziņojumu...",
-    "reportThisUser": "Ziņot par šo lietotāju"
+    "reportThisUser": "Ziņot par šo lietotāju",
+    "refundRequested": "Pieprasīta atmaksa"
   },
   "offers": {
     "pending": "Gaida",

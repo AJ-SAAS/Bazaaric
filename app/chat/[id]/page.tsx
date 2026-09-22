@@ -25,6 +25,7 @@ export default function ChatPage() {
     offer_declined: "bg-red-100 text-red-700",
     completed: "bg-gray-100 text-gray-700",
     cancelled: "bg-red-100 text-red-700",
+    refund_requested: "bg-orange-100 text-orange-700",
   };
 
   const orderStatusLabels: Record<Order["status"], string> = {
@@ -33,6 +34,7 @@ export default function ChatPage() {
     offer_declined: t("declined"),
     completed: t("paid"),
     cancelled: t("cancelled"),
+    refund_requested: t("refundRequested"),
   };
 
   const { user, loading } = useAuth();
