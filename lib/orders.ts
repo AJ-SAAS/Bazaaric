@@ -18,7 +18,8 @@ export type OrderStatus =
   | "offer_accepted"
   | "offer_declined"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "refund_requested";
 
 export type Carrier = "omniva" | "dpd" | "latvijas_pasts" | "other";
 
@@ -41,6 +42,11 @@ export type Order = {
   trackingNumber?: string;
   carrier?: Carrier;
   shippedAt?: Timestamp | null;
+  paidAt?: Timestamp | null;
+  refundReason?: string | null;
+  refundRequestedAt?: Timestamp | null;
+  refundApprovedAt?: Timestamp | null;
+  refundDeclinedAt?: Timestamp | null;
 };
 
 type CreateOfferInput = {

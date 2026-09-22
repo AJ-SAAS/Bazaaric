@@ -8,7 +8,7 @@ import { getOrdersForUser, acceptOffer, declineOffer, completeOrder, addTracking
 import { getOrCreateChat } from "@/lib/chat";
 import { hasReviewedOrder } from "@/lib/reviews";
 import { getPublicProfile } from "@/lib/profiles";
-import { createCheckoutSession, requestRefund } from "@/lib/payments";
+import { createCheckoutSession, requestRefund, approveRefund, declineRefund } from "@/lib/payments";
 import ReviewModal from "@/components/reviews/ReviewModal";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
@@ -31,6 +31,7 @@ export default function OffersPage() {
     offer_declined: "bg-red-100 text-red-700",
     completed: "bg-gray-100 text-gray-700",
     cancelled: "bg-red-100 text-red-700",
+    refund_requested: "bg-orange-100 text-orange-700",
   };
 
   const statusLabels: Record<Order["status"], string> = {
@@ -39,6 +40,7 @@ export default function OffersPage() {
     offer_declined: t("declined"),
     completed: t("completed"),
     cancelled: t("cancelled"),
+    refund_requested: t("refundRequested"),
   };
 
   const carrierLabels: Record<Carrier, string> = {
@@ -146,14 +148,34 @@ export default function OffersPage() {
     }
   }
 
-  async function handleCancelAndRefund(order: Order) {
-    if (!confirm(t("confirmCancelAndRefund"))) {
+  async function handleRequestRefund(order: Order) {
+    if (!confirm(t("confirmRequestRefund"))) {
       return;
     }
 
     setActingOn(order.id);
     try {
       await requestRefund(order.id);
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === order.id ? { ...o, status: "refund_requested" } : o
+        )
+      );
+    } catch (err: any) {
+      alert(err.message || t("couldntRequestRefund"));
+    } finally {
+      setActingOn(null);
+    }
+  }
+
+  async function handleApproveRefund(order: Order) {
+    if (!confirm(t("confirmApproveRefund"))) {
+      return;
+    }
+
+    setActingOn(order.id);
+    try {
+      await approveRefund(order.id);
       setOrders((prev) =>
         prev.map((o) =>
           o.id === order.id
@@ -163,6 +185,20 @@ export default function OffersPage() {
       );
     } catch (err: any) {
       alert(err.message || t("couldntProcessRefund"));
+    } finally {
+      setActingOn(null);
+    }
+  }
+
+  async function handleDeclineRefund(order: Order) {
+    setActingOn(order.id);
+    try {
+      await declineRefund(order.id);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? { ...o, status: "completed" } : o))
+      );
+    } catch (err: any) {
+      alert(err.message || t("couldntDeclineRefund"));
     } finally {
       setActingOn(null);
     }
@@ -254,8 +290,8 @@ export default function OffersPage() {
   function OrderRow({ order }: { order: Order }) {
     const isSeller = order.sellerId === user!.uid;
     const alreadyReviewed = reviewedOrderIds.has(order.id);
-    const canRefund = order.paymentStatus === "paid";
-    const isPaidOrCompleted = order.paymentStatus === "paid" || order.status === "completed";
+    const canRequestRefund = !isSeller && order.paymentStatus === "paid" && order.status === "completed";
+    const isPaidOrCompleted = order.paymentStatus === "paid" || order.status === "completed" || order.status === "refund_requested";
     const showTrackingForm = trackingFormOrderId === order.id;
     const trackUrl = order.trackingNumber && order.carrier
       ? CARRIER_TRACK_URLS[order.carrier]?.(order.trackingNumber)
@@ -296,8 +332,45 @@ export default function OffersPage() {
           </span>
         </div>
 
+        {/* Refund requested — seller view */}
+        {isSeller && order.status === "refund_requested" && (
+          <div className="mt-3 rounded-xl bg-orange-50 p-3 ring-1 ring-orange-200">
+            <p className="text-xs font-semibold text-orange-800">
+              {t("buyerRequestedRefund")}
+            </p>
+            {order.refundReason && (
+              <p className="mt-1 text-xs text-orange-700">"{order.refundReason}"</p>
+            )}
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => handleApproveRefund(order)}
+                disabled={actingOn === order.id}
+                className="rounded-full bg-orange-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:opacity-60"
+              >
+                {actingOn === order.id ? t("processing") : t("approveRefund")}
+              </button>
+              <button
+                onClick={() => handleDeclineRefund(order)}
+                disabled={actingOn === order.id}
+                className="rounded-full border border-orange-300 px-4 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 disabled:opacity-60"
+              >
+                {t("declineRefund")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Refund requested — buyer view (waiting) */}
+        {!isSeller && order.status === "refund_requested" && (
+          <div className="mt-3 rounded-xl bg-orange-50 p-3 ring-1 ring-orange-200">
+            <p className="text-xs font-semibold text-orange-800">
+              {t("refundPendingSellerApproval")}
+            </p>
+          </div>
+        )}
+
         {/* Shipping status — buyer view */}
-        {!isSeller && isPaidOrCompleted && (
+        {!isSeller && isPaidOrCompleted && order.status !== "refund_requested" && (
           <div className="mt-3 rounded-xl bg-gray-50 p-3">
             {order.trackingNumber ? (
               <div className="flex items-start gap-2">
@@ -317,7 +390,7 @@ export default function OffersPage() {
                     </button>
                   </div>
                   {trackUrl && (
-                    <a
+                    
                       href={trackUrl}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -338,7 +411,7 @@ export default function OffersPage() {
         )}
 
         {/* Tracking entry/edit — seller view */}
-        {isSeller && isPaidOrCompleted && (
+        {isSeller && isPaidOrCompleted && order.status !== "refund_requested" && (
           <div className="mt-3">
             {showTrackingForm ? (
               <div className="rounded-xl bg-gray-50 p-3 space-y-2">
@@ -438,13 +511,13 @@ export default function OffersPage() {
             </button>
           )}
 
-          {canRefund && (
+          {canRequestRefund && (
             <button
-              onClick={() => handleCancelAndRefund(order)}
+              onClick={() => handleRequestRefund(order)}
               disabled={actingOn === order.id}
               className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60"
             >
-              {actingOn === order.id ? t("processing") : t("cancelAndRefund")}
+              {actingOn === order.id ? t("processing") : t("requestRefund")}
             </button>
           )}
 

@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
 
   const order = orderSnap.data()!;
 
-  if (order.buyerId !== uid && order.sellerId !== uid) {
-    return NextResponse.json({ error: "This isn't your order." }, { status: 403 });
+  if (order.sellerId !== uid) {
+    return NextResponse.json({ error: "Only the seller can approve a refund." }, { status: 403 });
   }
 
-  if (order.paymentStatus !== "paid") {
-    return NextResponse.json({ error: "This order hasn't been paid, so there's nothing to refund." }, { status: 400 });
+  if (order.status !== "refund_requested") {
+    return NextResponse.json({ error: "There's no pending refund request for this order." }, { status: 400 });
   }
 
   const sessionId = order.stripeCheckoutSessionId as string | undefined;
@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Couldn't find the original payment." }, { status: 400 });
   }
 
-  // Refund the full amount, reversing both the transfer to the seller
-  // and Bazaaric's own application fee, so both sides get their money back.
+  // Full refund: reverses both the seller's payout and Bazaaric's platform fee
   await stripe.refunds.create({
     payment_intent: paymentIntentId,
     reverse_transfer: true,
@@ -57,6 +56,7 @@ export async function POST(req: NextRequest) {
     {
       status: "cancelled",
       paymentStatus: "refunded",
+      refundApprovedAt: new Date(),
       updatedAt: new Date(),
     },
     { merge: true }

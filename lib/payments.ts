@@ -48,8 +48,22 @@ export async function createCheckoutSession(orderId: string): Promise<string> {
   return data.url as string;
 }
 
-export async function requestRefund(orderId: string): Promise<void> {
-  await authedFetch("/api/stripe/refund", {
+export async function requestRefund(orderId: string, reason?: string): Promise<void> {
+  await authedFetch("/api/stripe/refund/request", {
+    method: "POST",
+    body: JSON.stringify({ orderId, reason }),
+  });
+}
+
+export async function approveRefund(orderId: string): Promise<void> {
+  await authedFetch("/api/stripe/refund/approve", {
+    method: "POST",
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+export async function declineRefund(orderId: string): Promise<void> {
+  await authedFetch("/api/stripe/refund/decline", {
     method: "POST",
     body: JSON.stringify({ orderId }),
   });
