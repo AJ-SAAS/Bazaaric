@@ -68,6 +68,7 @@ export default function Home() {
   useEffect(() => {
     getListings(50)
       .then(setListings)
+      .catch((err) => console.error("getListings failed:", err))
       .finally(() => setLoading(false));
   }, []);
 
